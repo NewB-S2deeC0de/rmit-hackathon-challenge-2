@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test --experimental-strip-types src/lib/pcf/calculate.test.ts"
+    "test": "node --test --experimental-strip-types backend/reporting/calculate.test.ts",
+    "test:all": "bash scripts/test-all.sh",
+    "check": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
