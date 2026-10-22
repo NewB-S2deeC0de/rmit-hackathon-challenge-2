@@ -1,12 +1,12 @@
 # Data — Sample Inputs & Benchmark Fixtures
 
 > **Phụ trách**: Member 2 — logic/data  
-> **Mục tiêu**: Cung cấp các bộ dữ liệu mẫu chuẩn (fixtures) phục vụ kiểm thử tính toán tay, demo nhanh bằng nút bấm và các ca thử nghiệm ngoại lệ biên.
+> **Mục tiêu**: Cung cấp toàn bộ bộ dữ liệu mẫu chuẩn (fixtures), mock data cho Buyer UI/Backend, và mock API client phục vụ phát triển song song.
 
 ---
 
 ## 1. Dữ liệu Lô hàng Mẫu Chuẩn: `DEMO-001`
-File: [`demoBatch.ts`](./demoBatch.ts)
+File: [`demoBatch.ts`](./demoBatch.ts) hoặc [`src/data/demoBatch.ts`](../../src/data/demoBatch.ts)
 
 * **Input**:
   * `batchId`: `"DEMO-001"`
@@ -28,13 +28,30 @@ File: [`demoBatch.ts`](./demoBatch.ts)
 
 ---
 
-## 2. Bằng chứng Chứng từ Mẫu: `demoEvidence`
-* Ghi chú text demo: `"Hóa đơn tiền điện EVN #004921 (1.200 kWh) + Phiếu xuất kho #5512 (500 kg demo-material-A) + Vận đơn Logistics BL-88219 (800 tấn-km)"`.
-* Mã hóa E2EE bởi TideCloak SDK, không bao giờ gửi rõ lên backend.
+## 2. Mock Data cho Buyer UI & Dashboard
+File: [`fixtures.ts`](./fixtures.ts) hoặc [`src/mocks/fixtures.ts`](../../src/mocks/fixtures.ts)
+
+* `mockPublicBatches`: Danh sách 5 lô hàng công bố đa dạng ngành nghề (Fastener, Bracket, Valve, Gear, Sensor) với timestamp giảm dần và kết quả PCF chính xác.
+* `mockListPublicBatchesResponse`: Object response chuẩn `{ items: PublicBatch[] }` sẵn sàng cắm vào `GET /api/batches/public`.
 
 ---
 
-## 3. Các Ca Dữ liệu Ngoại lệ Biên (Error Fixtures)
+## 3. Mock Data Lưu trữ Phía Server (Seed Data)
+* `mockStoredBatches`: 5 bản ghi `StoredBatch` hoàn chỉnh (gồm `id` UUID, `supplierId`, `createdAt`, `publicSummary`, và `encryptedInput` với bản mã chuỗi TideCloak mô phỏng).
+* Dùng làm seed data ban đầu cho `storage/batches.json`.
+
+---
+
+## 4. Mock API Client (`MockBatchApiClient`)
+* Class `MockBatchApiClient` cài đặt đầy đủ interface `BatchApi`:
+  * `getPublicBatches()`: Trả về danh sách lô hàng công khai sau độ trễ mạng giả lập 100ms.
+  * `submitBatch(request)`: Kiểm tra schema, kiểm tra trùng mã lô (ném `409 Conflict`), sinh ID/thời gian.
+  * `getEncryptedBatch(id)`: Trả về bản mã hoặc ném `404 Not Found`.
+* Giúp Member 3 (Supplier UI) và Member 4 (Buyer UI) chạy thử toàn bộ luồng giao diện mà không cần phụ thuộc backend.
+
+---
+
+## 5. Các Ca Dữ liệu Ngoại lệ Biên (Error Fixtures)
 * `invalidBatchZeroQuantity`: `quantity: "0"` $\rightarrow$ Lỗi `OUT_OF_RANGE`.
 * `invalidBatchNegativeElectricity`: `electricityKwh: "-500"` $\rightarrow$ Lỗi `OUT_OF_RANGE`.
 * `invalidBatchUnsupportedMaterial`: `materialType: "titanium-grade-5"` $\rightarrow$ Lỗi `UNSUPPORTED_VALUE`.
