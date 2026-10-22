@@ -6,6 +6,7 @@ import {
   PrivateBatchPayload,
   BatchCrypto
 } from '../../types';
+import { httpBatchApiClient } from '../../lib/batches/apiClient';
 
 export interface DecryptableBatchItem {
   id: string; // Server UUID
@@ -59,7 +60,19 @@ export const SupplierBatchDecryptionView: React.FC<SupplierBatchDecryptionViewPr
     setDecryptedPayload(null);
 
     try {
-      const payload = await cryptoAdapter.decryptBatch(currentBatch.encryptedInput);
+      let payloadToDecrypt = currentBatch.encryptedInput;
+
+      // Kiểm chứng kết nối backend: Thử tải bản mã từ GET /api/batches/:id/encrypted
+      try {
+        const remoteCipher = await httpBatchApiClient.getEncryptedBatch(currentBatch.id);
+        if (remoteCipher && remoteCipher.serialized) {
+          payloadToDecrypt = remoteCipher;
+        }
+      } catch {
+        // Dùng bản mã hiện tại nếu offline / local
+      }
+
+      const payload = await cryptoAdapter.decryptBatch(payloadToDecrypt);
       setDecryptedPayload(payload);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Lỗi giải mã';

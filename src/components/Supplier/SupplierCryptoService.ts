@@ -1,7 +1,7 @@
 // src/components/Supplier/SupplierCryptoService.ts
 // Dịch vụ chuẩn bị dữ liệu và mã hóa TideCloak tuân thủ đặc tả Mục 8, 11, 12, 13, 22
 
-import {
+import type {
   BatchInput,
   PCFResult,
   PrivateBatchPayload,
@@ -11,7 +11,7 @@ import {
   CreateBatchResponse,
   BatchCrypto,
   BatchApi
-} from '../../types';
+} from '../../types.ts';
 
 export const TAG_SUPPLIER_INTERNAL = "_tide_supplier_internal";
 export const TAG_SCOPE3_VERIFIED = "_tide_scope3_verified";

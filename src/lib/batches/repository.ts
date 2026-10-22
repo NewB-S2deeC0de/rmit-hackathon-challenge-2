@@ -5,7 +5,10 @@ import type { CreateBatchRequest, CreateBatchResponse, ListPublicBatchesResponse
 
 export class BatchRepository {
   private queue: Promise<unknown> = Promise.resolve();
-  constructor(private file = resolve(process.cwd(), "storage/batches.json")) {}
+  private file: string;
+  constructor(file = resolve(process.cwd(), "storage/batches.json")) {
+    this.file = file;
+  }
   private async read(): Promise<StoredBatch[]> {
     try { return JSON.parse(await readFile(this.file, "utf8")) as StoredBatch[]; }
     catch (error) { if ((error as NodeJS.ErrnoException).code === "ENOENT") return []; throw error; }

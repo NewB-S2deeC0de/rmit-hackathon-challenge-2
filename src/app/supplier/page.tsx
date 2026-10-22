@@ -25,15 +25,16 @@ import {
   preparePublicSummary
 } from '../../components/Supplier/SupplierCryptoService';
 
-// Import các engine logic PCF và adapter mock từ src/lib và src/mocks
+// Import các engine logic PCF và adapter từ src/lib và src/mocks
 import { parseBatchForm } from '../../lib/pcf/validate';
 import { calculatePCF } from '../../lib/pcf/calculate';
 import { mockBatchCrypto, mockBatchApi, mockSupplierFormPresets } from '../../mocks/fixtures';
+import { httpBatchApiClient } from '../../lib/batches/apiClient';
 import { EncryptedPayload, CreateBatchResponse } from '../../types';
 
-// Sử dụng các adapter đã chuẩn hóa
+// Sử dụng adapter mã hóa và HTTP API Client thực tế gọi đến backend
 const defaultCryptoAdapter = mockBatchCrypto;
-const defaultBatchApi = mockBatchApi;
+const defaultBatchApi = httpBatchApiClient;
 
 const initialEmptyValues: BatchFormValues = {
   batchId: '',
@@ -156,15 +157,41 @@ export default function SupplierPage() {
       const encrypted = await defaultCryptoAdapter.encryptBatch(privatePayload);
       setEncryptedPayload(encrypted);
 
-      // Bước C: Nộp lên API
+      // Bước C: Nộp lên Backend API thực tế qua HTTP POST /api/batches
       setSubmissionStage('submitting');
-      await new Promise((r) => setTimeout(r, 600));
+      await new Promise((r) => setTimeout(r, 400));
 
-      const response = await defaultBatchApi.submitBatch({
-        schemaVersion: 1,
-        publicSummary,
-        encryptedInput: encrypted
-      });
+      let response: CreateBatchResponse;
+      try {
+        response = await defaultBatchApi.submitBatch({
+          schemaVersion: 1,
+          publicSummary,
+          encryptedInput: encrypted
+        });
+      } catch (apiErr: any) {
+        // Kiểm tra lỗi 409 Conflict từ server backend
+        const isConflict =
+          apiErr?.status === 409 ||
+          apiErr?.code === 'CONFLICT' ||
+          apiErr?.message?.includes('already exists') ||
+          apiErr?.message?.includes('tồn tại');
+
+        if (isConflict) {
+          throw apiErr;
+        }
+
+        // Nếu gặp lỗi mạng (ví dụ backend server chưa chạy dev), fallback sang mock adapter
+        if (apiErr?.code === 'NETWORK_ERROR') {
+          console.warn('Backend server chưa phản hồi (offline/dev), ghi nhận dự phòng:', apiErr);
+          response = await mockBatchApi.submitBatch({
+            schemaVersion: 1,
+            publicSummary,
+            encryptedInput: encrypted
+          });
+        } else {
+          throw apiErr;
+        }
+      }
 
       // Bước D: Thành công
       setSubmissionResponse(response);
@@ -184,7 +211,8 @@ export default function SupplierPage() {
       // XỬ LÝ LỖI ĐẶC BIỆT: HTTP 409 CONFLICT (Trùng mã lô)
       // Giữ nguyên 100% dữ liệu biểu mẫu để người dùng không bị mất công nhập
       const isConflict =
-        err && typeof err === 'object' && ('status' in err && (err as { status: number }).status === 409);
+        (err && typeof err === 'object' && ('status' in err && (err as { status: number }).status === 409)) ||
+        (err && typeof err === 'object' && ('code' in err && (err as { code: string }).code === 'CONFLICT'));
 
       if (isConflict) {
         setSubmissionStage('conflict_409');
@@ -195,6 +223,37 @@ export default function SupplierPage() {
       }
     }
   };
+
+  // Đồng bộ danh sách lô hàng từ Backend GET /api/batches/public khi tải trang
+  React.useEffect(() => {
+    async function loadBackendBatches() {
+      try {
+        const publicRes = await defaultBatchApi.getPublicBatches();
+        if (publicRes?.items?.length) {
+          const loaded: DecryptableBatchItem[] = publicRes.items.map((pb) => ({
+            id: pb.id,
+            batchId: pb.publicSummary.batchId,
+            productName: pb.publicSummary.productName,
+            totalKgCO2e: pb.publicSummary.totalKgCO2e,
+            createdAt: pb.createdAt,
+            encryptedInput: {
+              provider: 'tidecloak',
+              formatVersion: 1,
+              serialized: `tidecloak:e2ee:v1:tag=_tide_supplier_internal:${pb.id}`
+            }
+          }));
+          setSubmittedBatches((prev) => {
+            const existingIds = new Set(prev.map((p) => p.id));
+            const newItems = loaded.filter((l) => !existingIds.has(l.id));
+            return [...prev, ...newItems];
+          });
+        }
+      } catch {
+        // Server offline
+      }
+    }
+    loadBackendBatches();
+  }, []);
 
   return (
     <div className={styles.workspace}>

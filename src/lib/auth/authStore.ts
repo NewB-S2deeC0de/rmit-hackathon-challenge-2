@@ -24,6 +24,31 @@ export interface RegisterPayload {
 
 const STORAGE_KEY = 'scopezero_auth_user';
 
+function generateJwtToken(id: string, role: AppRole, name: string): string {
+  const toBase64Url = (obj: Record<string, unknown>) => {
+    const json = JSON.stringify(obj);
+    if (typeof Buffer !== 'undefined') {
+      return Buffer.from(json, 'utf8').toString('base64url');
+    }
+    return btoa(unescape(encodeURIComponent(json)))
+      .replace(/=/g, '')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_');
+  };
+
+  const header = toBase64Url({ alg: 'EdDSA', typ: 'JWT' });
+  const now = Math.floor(Date.now() / 1000);
+  const payload = toBase64Url({
+    sub: id,
+    preferred_username: name,
+    name: name,
+    exp: now + 3600 * 24,
+    nbf: now - 60,
+    realm_access: { roles: [role, '_tide_pcf.selfencrypt'] }
+  });
+  return `${header}.${payload}.tide-sig-${Date.now()}`;
+}
+
 export const DEMO_USERS: Record<AppRole, AuthUser> = {
   supplier: {
     id: 'supplier-demo',
@@ -31,7 +56,7 @@ export const DEMO_USERS: Record<AppRole, AuthUser> = {
     name: 'Nguyễn Văn A',
     company: 'Công ty Cơ khí A',
     role: 'supplier',
-    token: 'tide_token_supplier_internal_001',
+    token: generateJwtToken('supplier-demo', 'supplier', 'Nguyễn Văn A'),
     createdAt: '2026-10-20T08:00:00.000Z'
   },
   buyer: {
@@ -40,7 +65,7 @@ export const DEMO_USERS: Record<AppRole, AuthUser> = {
     name: 'Trần Thị B',
     company: 'Tập đoàn B',
     role: 'buyer',
-    token: 'tide_token_buyer_public_002',
+    token: generateJwtToken('buyer-demo', 'buyer', 'Trần Thị B'),
     createdAt: '2026-10-20T08:30:00.000Z'
   }
 };
@@ -68,13 +93,15 @@ export function getAuthSession(user: AuthUser | null): AuthSession | null {
 
 /** Đăng nhập */
 export function login(email: string, role: AppRole = 'supplier', name?: string, company?: string): AuthUser {
+  const id = `usr_${Date.now()}`;
+  const userName = name || email.split('@')[0];
   const user: AuthUser = {
-    id: `usr_${Date.now()}`,
+    id,
     email,
-    name: name || email.split('@')[0],
+    name: userName,
     company: company || (role === 'supplier' ? 'Nhà cung cấp' : 'Bên mua'),
     role,
-    token: `tide_token_${role}_${Date.now()}`,
+    token: generateJwtToken(id, role, userName),
     createdAt: new Date().toISOString()
   };
   if (typeof window !== 'undefined') {
@@ -86,13 +113,14 @@ export function login(email: string, role: AppRole = 'supplier', name?: string, 
 
 /** Đăng ký tài khoản mới */
 export function register(payload: RegisterPayload): AuthUser {
+  const id = `usr_${Date.now()}`;
   const user: AuthUser = {
-    id: `usr_${Date.now()}`,
+    id,
     email: payload.email,
     name: payload.name,
     company: payload.company,
     role: payload.role,
-    token: `tide_token_${payload.role}_${Date.now()}`,
+    token: generateJwtToken(id, payload.role, payload.name),
     createdAt: new Date().toISOString()
   };
   if (typeof window !== 'undefined') {
