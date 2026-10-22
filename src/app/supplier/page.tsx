@@ -206,13 +206,23 @@ export default function SupplierPage() {
           </p>
         </div>
 
-        <div className={styles.badgeGroup}>
-          <span className={styles.roleBadge}>
-            <span>🏢</span> Role: supplier (Company A)
-          </span>
-          <span className={styles.securityBadge}>
-            <span>🛡️</span> TideCloak E2EE Active
-          </span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+          <div className={styles.badgeGroup}>
+            <a href="/" style={{ color: '#8b949e', textDecoration: 'none', padding: '5px 12px', fontSize: '12.5px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}>
+              🏠 Trang Chủ
+            </a>
+            <a href="/buyer" style={{ color: '#38bdf8', textDecoration: 'none', padding: '5px 12px', fontSize: '12.5px', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '8px' }}>
+              🛒 Sang Cổng Bên Mua ➔
+            </a>
+          </div>
+          <div className={styles.badgeGroup}>
+            <span className={styles.roleBadge}>
+              <span>🏢</span> Role: supplier (Company A)
+            </span>
+            <span className={styles.securityBadge}>
+              <span>🛡️</span> TideCloak E2EE Active
+            </span>
+          </div>
         </div>
       </header>
 

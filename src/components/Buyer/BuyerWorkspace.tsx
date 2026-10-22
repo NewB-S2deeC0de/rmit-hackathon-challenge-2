@@ -58,10 +58,15 @@ export function BuyerWorkspace({ source, initialBatches, initialMode = 'api' }: 
     <div className={styles.workspace}>
       <a className={styles.skipLink} href="#buyer-reports">Đến danh sách báo cáo</a>
       <header className={styles.topbar}>
-        <a href="/buyer" className={styles.brand} aria-label="ScopeZero — Buyer">
+        <a href="/" className={styles.brand} aria-label="ScopeZero — Trang chủ">
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M21 5H10a5 5 0 0 0 0 10h8a4 4 0 0 1 0 8H7" stroke="currentColor" strokeWidth="2.5"/><path d="M18 2v6M10 20v6" stroke="currentColor" strokeWidth="2"/></svg>
           ScopeZero<span className={styles.brandDivider}>/</span><span className={styles.brandScope}>Buyer</span>
         </a>
+        <nav className={styles.navLinks} aria-label="Điều hướng chính">
+          <a href="/" className={styles.navLink}>Tổng quan</a>
+          <a href="/supplier" className={styles.navLink}>🏢 Nhà cung cấp</a>
+          <a href="/buyer" className={`${styles.navLink} ${styles.navLinkActive}`} aria-current="page">🛒 Bên mua</a>
+        </nav>
         <span className={styles.publicLabel}>Báo cáo công khai</span>
       </header>
 
