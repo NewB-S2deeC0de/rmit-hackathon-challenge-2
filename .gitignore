@@ -1,0 +1,13 @@
+node_modules/
+.next/
+dist/
+out/
+build/
+*.log
+.DS_Store
+*.local
+.env*.local
+
+# Storage phát sinh lúc chạy thử nghiệm (không commit)
+storage/*.json
+!storage/.gitkeep
