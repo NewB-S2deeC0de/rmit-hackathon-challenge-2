@@ -1,5 +1,20 @@
 # ScopeZero
 
+> **Hệ thống chia sẻ phát thải Scope 3 & Bảo vệ bí mật kinh doanh bằng TideCloak E2EE**
+
+https://github.com/NewB-S2deeC0de/rmit-hackathon-challenge-2/raw/main/demo.mp4
+
+<div align="center">
+  <video src="https://github.com/NewB-S2deeC0de/rmit-hackathon-challenge-2/raw/main/demo.mp4" controls="controls" width="100%" style="max-height: 480px; border-radius: 8px;">
+    Trình duyệt không hỗ trợ xem video trực tiếp. <a href="demo.mp4">Nhấp vào đây để xem / tải video demo.mp4</a>
+  </video>
+</div>
+
+* 🎬 **Video demo 2 phút:** [demo.mp4](demo.mp4)
+* 📋 **Kịch bản thuyết trình chi tiết & Hỏi đáp phản biện:** [docs/DEMO_SCRIPT_2_MINUTES.md](docs/DEMO_SCRIPT_2_MINUTES.md)
+
+---
+
 ## Project overview
 
 ScopeZero giúp nhà cung cấp chia sẻ dấu chân carbon sản phẩm (PCF) cho bên mua, hạn chế tiết lộ dữ liệu vận hành.

@@ -432,6 +432,68 @@
   gap: 12px;
 }
 
+/* Video Demo Section */
+.videoSection {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 32px 24px;
+  margin: 24px 0 48px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.videoHeader {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 24px;
+}
+
+.videoBadge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #047857;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 8px;
+}
+
+.videoTitle {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 8px;
+  letter-spacing: -.4px;
+}
+
+.videoSubtitle {
+  font-size: 13.5px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.videoFrame {
+  max-width: 900px;
+  margin: 0 auto;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000000;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.videoElement {
+  width: 100%;
+  max-height: 520px;
+  display: block;
+  object-fit: contain;
+}
+
 @media (max-width: 900px) {
   .portalsGrid {
     grid-template-columns: 1fr;

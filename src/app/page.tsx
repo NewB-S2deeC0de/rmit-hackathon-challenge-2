@@ -194,6 +194,33 @@ export default function HomePage() {
           </article>
         </section>
 
+        {/* Video Demo Section */}
+        <section className={styles.videoSection}>
+          <div className={styles.videoHeader}>
+            <span className={styles.videoBadge}>Video Demo 2 Phút</span>
+            <h2 className={styles.videoTitle}>Quy trình liên kết Supplier - Buyer & Kiểm chứng Bảo mật</h2>
+            <p className={styles.videoSubtitle}>
+              Theo dõi trực tiếp quá trình khai báo PCF, niêm phong E2EE và cơ chế Zero-Leakage ngăn chặn bên mua truy cập dữ liệu nội bộ.
+            </p>
+          </div>
+          <div className={styles.videoFrame}>
+            <video
+              src="/demo.mp4"
+              controls
+              playsInline
+              preload="metadata"
+              className={styles.videoElement}
+            >
+              Trình duyệt của bạn không hỗ trợ thẻ video HTML5. <a href="/demo.mp4">Tải video demo.mp4</a>
+            </video>
+          </div>
+          <div style={{ marginTop: '16px', textAlign: 'center' }}>
+            <Link href="/docs/DEMO_SCRIPT_2_MINUTES.md" style={{ color: '#0f172a', fontSize: '13px', fontWeight: 600, textDecoration: 'underline' }}>
+              Xem kịch bản thuyết trình chi tiết (0:00 - 2:00) & Bộ câu hỏi phản biện Giám khảo →
+            </Link>
+          </div>
+        </section>
+
         {/* Security Architecture Flow */}
         <section className={styles.architectureSection}>
           <div className={styles.sectionHeader}>
