@@ -278,3 +278,18 @@ export interface ListPublicBatchesResponse {
 * **Chính sách**: 3 tài khoản admin TideCloak độc lập; chính sách nhạy cảm yêu cầu ngưỡng đồng thuận $\ge 2/3$.
 * **Kiểm chứng thực thi**: Đề xuất cấp quyền giải mã $\rightarrow$ trạng thái `PENDING` $\rightarrow$ thực thi giải mã vẫn bị **từ chối (403)** cho đến khi admin thứ hai phê duyệt.
 * **Giới hạn**: QEA bảo vệ chính sách TideCloak; không tự bảo vệ được mã nguồn nếu dev can thiệp vào máy chủ ứng dụng hoặc trình duyệt.
+
+---
+
+## 10. Ba Lưu ý Kỹ thuật Cốt lõi của TideCloak SDK (Mục 22 Đặc tả Hệ thống)
+
+1. **Dữ liệu đầu vào của hàm mã hóa**:
+   * SDK của Tide yêu cầu dữ liệu đưa vào hàm mã hóa phải là dạng `string` hoặc `Uint8Array` (không được truyền trực tiếp một JavaScript Object `{}`).
+   * **Xử lý**: Trước khi gọi lệnh mã hóa dữ liệu, luôn phải chạy `JSON.stringify(privateBatchPayload)`.
+2. **Khớp chính xác tên thẻ (Tags)**:
+   * TideCloak yêu cầu thẻ dùng để giải mã phải trùng khớp từng ký tự với thẻ đã dùng khi mã hóa. Giữ nguyên quy ước hằng số tại `src/types.ts`:
+     * `TAG_SUPPLIER_INTERNAL = "_tide_supplier_internal"`
+     * `TAG_SCOPE3_VERIFIED = "_tide_scope3_verified"`
+3. **Cấu hình Client trong TideCloak Console**:
+   * Khi khởi chạy TideCloak bằng Docker: Client ID: `scopezero-web`, Standard Flow Enabled = `true`, Valid Redirect URIs = `http://localhost:5173/*` và `http://localhost:3000/*`, tải file cấu hình `tidecloak.json` đặt vào thư mục gốc của frontend (tham chiếu mẫu tại `infra/tidecloak/tidecloak.example.json`).
+

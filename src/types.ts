@@ -238,6 +238,26 @@ export interface AuthAdapter {
 }
 
 export interface BatchCrypto {
-  encryptBatch(payload: PrivateBatchPayload): Promise<EncryptedPayload>;
-  decryptBatch(payload: EncryptedPayload): Promise<PrivateBatchPayload>;
+  encryptBatch(
+    payload: PrivateBatchPayload,
+    tag?: TideCloakTag
+  ): Promise<EncryptedPayload>;
+  decryptBatch(
+    payload: EncryptedPayload,
+    tag?: TideCloakTag
+  ): Promise<PrivateBatchPayload>;
 }
+
+// ==========================================
+// 14. TideCloak SDK Constants (Mục 22 Đặc tả)
+// ==========================================
+
+/** Thẻ mã hóa dữ liệu nội bộ của Supplier — yêu cầu khớp chính xác từng ký tự */
+export const TAG_SUPPLIER_INTERNAL = "_tide_supplier_internal" as const;
+
+/** Thẻ mã hóa dữ liệu Scope 3 đã xác minh (hướng mở rộng) */
+export const TAG_SCOPE3_VERIFIED = "_tide_scope3_verified" as const;
+
+export type TideCloakTag =
+  | typeof TAG_SUPPLIER_INTERNAL
+  | typeof TAG_SCOPE3_VERIFIED;

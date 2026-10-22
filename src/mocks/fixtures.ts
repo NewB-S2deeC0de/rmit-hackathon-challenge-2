@@ -27,19 +27,91 @@ import {
 export * from "../data/demoBatch.ts";
 
 // ============================================================================
-// 1. Mock Encrypted Payload Helper
+// 1. Mock Encrypted Payload Helper & MockBatchCrypto
+// Tuân thủ 3 lưu ý kỹ thuật của TideCloak SDK (Mục 22 Đặc tả ScopeZero):
+// 1. Input mã hóa phải là string: JSON.stringify(payload)
+// 2. Thẻ giải mã phải khớp chính xác: TAG_SUPPLIER_INTERNAL
 // ============================================================================
+
+import {
+  TAG_SUPPLIER_INTERNAL,
+  type BatchCrypto,
+  type TideCloakTag,
+} from "../types.ts";
 
 /**
  * Sinh chuỗi bản mã mock mô phỏng đầu ra của TideCloak SDK
  */
-export function createMockEncryptedPayload(batchId: string): EncryptedPayload {
+export function createMockEncryptedPayload(
+  batchId: string,
+  tag: TideCloakTag = TAG_SUPPLIER_INTERNAL
+): EncryptedPayload {
   return {
     provider: "tidecloak",
     formatVersion: 1,
-    serialized: `tidecloak:e2ee:v1:aes-256-gcm:mock-cipher-payload-for-${batchId}-signed-by-tide-network`,
+    serialized: `tidecloak:e2ee:v1:aes-256-gcm:tag=${tag}:mock-cipher-payload-for-${batchId}`,
   };
 }
+
+/**
+ * Mock Crypto Adapter cài đặt BatchCrypto mô phỏng TideCloak SDK
+ */
+export class MockBatchCrypto implements BatchCrypto {
+  private store = new Map<string, string>();
+
+  /**
+   * Mã hóa: Bắt buộc serialize sang string bằng JSON.stringify trước khi mã hóa (Lưu ý 1)
+   */
+  async encryptBatch(
+    payload: PrivateBatchPayload,
+    tag: TideCloakTag = TAG_SUPPLIER_INTERNAL
+  ): Promise<EncryptedPayload> {
+    // 1. Chuỗi hóa dữ liệu JSON theo yêu cầu của TideCloak SDK
+    const rawString = JSON.stringify(payload);
+
+    // 2. Giả lập mã hóa và gán tag (Lưu ý 2)
+    const cipherKey = `cipher-${payload.input.batchId}-${Date.now()}`;
+    this.store.set(cipherKey, rawString);
+
+    return {
+      provider: "tidecloak",
+      formatVersion: 1,
+      serialized: `tidecloak:e2ee:v1:tag=${tag}:${cipherKey}`,
+    };
+  }
+
+  /**
+   * Giải mã: Yêu cầu tag giải mã phải khớp chính xác (Lưu ý 2)
+   */
+  async decryptBatch(
+    payload: EncryptedPayload,
+    tag: TideCloakTag = TAG_SUPPLIER_INTERNAL
+  ): Promise<PrivateBatchPayload> {
+    if (!payload.serialized.includes(`tag=${tag}`)) {
+      throw new ContractError({
+        message: `Giải mã thất bại: Thẻ (Tag) '${tag}' không khớp với thẻ mã hóa gốc`,
+        code: "ACCESS_DENIED",
+        status: 403,
+      });
+    }
+
+    const parts = payload.serialized.split(":");
+    const cipherKey = parts[parts.length - 1];
+    const rawString = this.store.get(cipherKey);
+
+    if (!rawString) {
+      throw new ContractError({
+        message: "Không tìm thấy khóa hoặc dữ liệu bản mã không hợp lệ",
+        code: "CRYPTO_FAILED",
+        status: 400,
+      });
+    }
+
+    return JSON.parse(rawString) as PrivateBatchPayload;
+  }
+}
+
+export const mockBatchCrypto = new MockBatchCrypto();
 
 // ============================================================================
 // 2. Danh mục các Lô hàng Mẫu Hợp lệ Đa dạng (Diverse Batch Inputs)

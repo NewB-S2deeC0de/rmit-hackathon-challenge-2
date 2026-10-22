@@ -22,8 +22,10 @@ Theo đề xuất thống nhất tại Mục 5 của `docs/project-context.md`:
 * **Chỉ rõ ranh giới Minh bạch vs Bảo mật (Clear indication)**:
   * Trực quan hóa phần **Công bố công khai**: `PublicSummary` (`batchId`, `productName`, `totalKgCO2e`, `perProductKgCO2e`, `factorVersion`, nhãn `supplier-reported`).
   * Trực quan hóa phần **Mã hóa bảo vệ (E2EE)**: `PrivateBatchPayload` (`electricityKwh`, `materialKg`, `inboundTransportTonKm`, `wasteKg`, `breakdown`, `evidence`) được niêm phong bởi TideCloak trước khi bấm "Gửi báo cáo".
-* **Mã hóa & Gửi lên Backend**:
-  * Gọi `tidecloak.encryptBatch(privatePayload)` để nhận `EncryptedPayload`.
+* **Mã hóa & Gửi lên Backend (Lưu ý Mục 22 Đặc tả ScopeZero)**:
+  * **Input dạng String**: SDK TideCloak yêu cầu đầu vào là string $\rightarrow$ **luôn chạy `JSON.stringify(privatePayload)`** trước khi gọi mã hóa.
+  * **Khớp thẻ (Tag)**: Sử dụng hằng số `TAG_SUPPLIER_INTERNAL = "_tide_supplier_internal"` từ `src/types.ts` khi mã hóa để đảm bảo giải mã thành công.
+  * Gọi `tidecloak.encryptBatch(JSON.stringify(privatePayload), TAG_SUPPLIER_INTERNAL)` để nhận `EncryptedPayload`.
   * Gửi `POST /api/batches` với body `{ schemaVersion: 1, publicSummary, encryptedInput }`.
   * Giữ nguyên dữ liệu trên form khi có lỗi để Supplier không phải nhập lại từ đầu.
 
