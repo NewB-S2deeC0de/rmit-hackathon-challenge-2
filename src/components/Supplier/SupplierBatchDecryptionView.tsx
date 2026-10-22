@@ -22,6 +22,16 @@ export interface SupplierBatchDecryptionViewProps {
   onBackToForm: () => void;
 }
 
+const numberFormat = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 2 });
+const dateFormat = new Intl.DateTimeFormat('vi-VN', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'UTC'
+});
+
 export const SupplierBatchDecryptionView: React.FC<SupplierBatchDecryptionViewProps> = ({
   batches,
   cryptoAdapter,
@@ -35,6 +45,12 @@ export const SupplierBatchDecryptionView: React.FC<SupplierBatchDecryptionViewPr
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
 
   const currentBatch = batches.find((b) => b.id === selectedBatchId) || batches[0];
+
+  const handleSelectBatch = (id: string) => {
+    setSelectedBatchId(id);
+    setDecryptedPayload(null);
+    setErrorStatus(null);
+  };
 
   const handleDecryptOwner = async () => {
     if (!currentBatch) return;
@@ -74,7 +90,7 @@ export const SupplierBatchDecryptionView: React.FC<SupplierBatchDecryptionViewPr
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'ACCESS_DENIED';
       setErrorStatus(
-        `🛡️ [BẢO MẬT TIDECLOAK NGĂN CHẶN THÀNH CÔNG] Từ chối giải mã (${message}): Người dùng không có vai trò Supplier sở hữu hoặc thẻ QEA hợp lệ. Bản mã hoàn toàn không thể bị xem lén!`
+        `🛡️ [BẢO MẬT TIDECLOAK NGĂN CHẶN THÀNH CÔNG] Từ chối giải mã (${message}): Quyền truy cập bị từ chối do không có thẻ quyền _tide_supplier_internal hoặc vai trò hợp lệ.`
       );
     } finally {
       setIsDecrypting(false);
@@ -83,175 +99,224 @@ export const SupplierBatchDecryptionView: React.FC<SupplierBatchDecryptionViewPr
 
   if (batches.length === 0) {
     return (
-      <div className={styles.glassCard} style={{ textAlign: 'center', padding: '40px 20px' }}>
-        <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>📭</div>
-        <h3 style={{ margin: '0 0 8px 0', color: '#f0f6fc' }}>Chưa Có Lô Hàng Nào Được Nộp</h3>
-        <p style={{ color: '#8b949e', fontSize: '0.9rem', marginBottom: '20px' }}>
-          Bạn chưa nộp lô hàng nào trong phiên làm việc hiện tại để kiểm chứng tính năng giải mã.
+      <div className={styles.mainPanel} style={{ textAlign: 'center', padding: '48px 24px' }}>
+        <div style={{ fontSize: '32px', marginBottom: '12px' }}>📭</div>
+        <h3 style={{ margin: '0 0 8px 0', color: 'var(--text)', fontSize: '18px' }}>
+          Chưa có lô hàng nào được nộp trong phiên
+        </h3>
+        <p className={styles.muted} style={{ maxWidth: '460px', margin: '0 auto 24px auto' }}>
+          Sau khi hoàn thành khai báo và gửi lô hàng lên hệ thống, bạn có thể kiểm chứng tính toàn vẹn và khả năng giải mã E2EE tại đây.
         </p>
         <button type="button" className={`${styles.btn} ${styles.btnPrimary}`} onClick={onBackToForm}>
-          <span>➕</span> Nhập & Nộp Lô Hàng Mới
+          + Khai báo lô hàng mới
         </button>
       </div>
     );
   }
 
   return (
-    <div className={styles.glassCard}>
-      <div className={styles.cardHeader}>
-        <h2>
-          <span>🔓</span> Màn Hình Giải Mã Kiểm Chứng Lô Hàng Riêng (E2EE)
-        </h2>
-        <button type="button" className={`${styles.btn} ${styles.btnSecondary}`} onClick={onBackToForm}>
-          <span>⬅️</span> Quay Lại Form Nhập Lô
-        </button>
-      </div>
-
-      <div className={styles.alertInfo}>
-        Màn hình này cho phép Nhà cung cấp lấy bản mã đã lưu trữ trên máy chủ và thực hiện <strong>giải mã trực tiếp qua TideCloak SDK</strong>. Quá trình giải mã yêu cầu đúng thẻ sở hữu <code>_tide_supplier_internal</code> và chính sách quyền hạn hợp lệ.
-      </div>
-
-      {/* Bộ chọn lô hàng */}
-      <div style={{ marginBottom: '20px' }}>
-        <label className={styles.label} style={{ marginBottom: '8px', display: 'block' }}>
-          Chọn Lô Hàng Cần Kiểm Chứng:
-        </label>
-        <select
-          className={styles.select}
-          value={selectedBatchId}
-          onChange={(e) => {
-            setSelectedBatchId(e.target.value);
-            setDecryptedPayload(null);
-            setErrorStatus(null);
-          }}
-        >
-          {batches.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.batchId} — {b.productName} ({b.totalKgCO2e} kg CO2e) [UUID: {b.id.slice(0, 8)}...]
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {currentBatch && (
-        <div>
-          {/* Thông tin bản mã thô */}
-          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '16px', marginBottom: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <span style={{ fontSize: '0.85rem', color: '#8b949e' }}>Trạng Thái Lưu Trữ Trên Máy Chủ & CSDL:</span>
-              <span className={styles.securityBadge}>Đã Mã Hóa TideCloak v1</span>
-            </div>
-            <div style={{ fontSize: '0.8rem', color: '#8b949e', marginBottom: '6px' }}>
-              Serialized Ciphertext Envelope (Dữ liệu bảo mật dạng chuỗi an toàn):
-            </div>
-            <div className={styles.codeBlock}>
-              {currentBatch.encryptedInput.serialized}
-            </div>
-            <div style={{ fontSize: '0.75rem', color: '#8b949e', marginTop: '6px' }}>
-              * Ngay cả quản trị viên máy chủ hoặc người có toàn quyền đọc cơ sở dữ liệu cũng chỉ nhìn thấy chuỗi mật mã trên.
-            </div>
+    <div className={styles.contentGrid}>
+      {/* Cột chính: Bảng danh sách lô hàng đã nộp */}
+      <section className={styles.mainPanel} aria-labelledby="decryption-table-title">
+        <div className={styles.panelHeader}>
+          <div>
+            <h2 id="decryption-table-title" className={styles.panelTitle}>
+              Danh sách lô hàng của nhà cung cấp ({batches.length})
+            </h2>
+            <p className={styles.muted} style={{ marginTop: '2px' }}>
+              Chọn một lô hàng để kiểm chứng bản mã E2EE và chạy thử nghiệm giải mã trực tiếp.
+            </p>
           </div>
-
-          {/* Nút hành động giải mã */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
-            <button
-              type="button"
-              className={`${styles.btn} ${styles.btnPrimary}`}
-              onClick={handleDecryptOwner}
-              disabled={isDecrypting}
-            >
-              <span>🔑</span> Giải Mã Bằng Khóa Sở Hữu Của Supplier
-            </button>
-
-            <button
-              type="button"
-              className={`${styles.btn} ${styles.btnSecondary}`}
-              onClick={handleSimulateUnauthorized}
-              disabled={isDecrypting}
-              title="Mô phỏng truy cập từ Buyer hoặc bên thứ ba không có quyền QEA"
-            >
-              <span>🛡️</span> Thử Giải Mã Trái Phép (Kiểm Thử An Ninh)
-            </button>
-          </div>
-
-          {/* Trạng thái đang giải mã */}
-          {isDecrypting && (
-            <div style={{ textAlign: 'center', padding: '16px' }}>
-              <div className={styles.spinner} style={{ marginBottom: '8px' }} />
-              <div style={{ color: '#8b949e', fontSize: '0.9rem' }}>Đang kết nối TideCloak Enclave giải mã...</div>
-            </div>
-          )}
-
-          {/* Lỗi hoặc chặn bảo mật */}
-          {errorStatus && (
-            <div className={errorStatus.includes('NGĂN CHẶN THÀNH CÔNG') ? styles.alertWarning : styles.alertDanger}>
-              {errorStatus}
-            </div>
-          )}
-
-          {/* Kết quả giải mã thành công */}
-          {decryptedPayload && (
-            <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.4)', borderRadius: '12px', padding: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#34d399', fontWeight: 'bold', marginBottom: '14px', fontSize: '1.05rem' }}>
-                <span>✅</span> GIẢI MÃ THÀNH CÔNG: Dữ Liệu Hồ Sơ Gốc Đã Được Khôi Phục Bản Rõ
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '16px' }}>
-                <div style={{ background: '#0d1117', padding: '12px', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '0.8rem', color: '#8b949e' }}>Điện Năng Đầu Vào:</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#f0f6fc' }}>
-                    {decryptedPayload.input.electricityKwh} kWh
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#34d399' }}>
-                    Phát thải: {decryptedPayload.result.breakdown.electricityKgCO2e} kg CO2e
-                  </div>
-                </div>
-
-                <div style={{ background: '#0d1117', padding: '12px', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '0.8rem', color: '#8b949e' }}>Vật Liệu ({decryptedPayload.input.materialType}):</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#f0f6fc' }}>
-                    {decryptedPayload.input.materialKg} kg
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#34d399' }}>
-                    Phát thải: {decryptedPayload.result.breakdown.materialsKgCO2e} kg CO2e
-                  </div>
-                </div>
-
-                <div style={{ background: '#0d1117', padding: '12px', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '0.8rem', color: '#8b949e' }}>Vận Tải Đầu Vào:</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#f0f6fc' }}>
-                    {decryptedPayload.input.inboundTransportTonKm} tấn-km
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#34d399' }}>
-                    Phát thải: {decryptedPayload.result.breakdown.transportKgCO2e} kg CO2e
-                  </div>
-                </div>
-
-                <div style={{ background: '#0d1117', padding: '12px', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '0.8rem', color: '#8b949e' }}>Chất Thải & Hao Hụt:</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#f0f6fc' }}>
-                    {decryptedPayload.input.wasteKg} kg
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#34d399' }}>
-                    Phát thải: {decryptedPayload.result.breakdown.wasteKgCO2e} kg CO2e
-                  </div>
-                </div>
-              </div>
-
-              {decryptedPayload.evidence && (
-                <div style={{ background: '#0d1117', padding: '12px', borderRadius: '8px', borderLeft: '3px solid #06b6d4' }}>
-                  <div style={{ fontSize: '0.8rem', color: '#06b6d4', fontWeight: 'bold', marginBottom: '4px' }}>
-                    Ghi Chú Chứng Từ Xác Thực (Decrypted Evidence Note):
-                  </div>
-                  <div style={{ color: '#e6edf3', fontSize: '0.9rem' }}>
-                    {decryptedPayload.evidence.text}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+          <button type="button" className={`${styles.btn} ${styles.btnGhost}`} onClick={onBackToForm}>
+            + Khai báo thêm
+          </button>
         </div>
-      )}
+
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th scope="col">Lô hàng / Sản phẩm</th>
+                <th scope="col" className={styles.numeric}>Tổng phát thải (kg CO₂e)</th>
+                <th scope="col">Bản mã E2EE</th>
+                <th scope="col">Thời gian (UTC)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {batches.map((batch) => {
+                const isSelected = selectedBatchId === batch.id;
+                return (
+                  <tr
+                    key={batch.id}
+                    className={isSelected ? styles.selectedRow : undefined}
+                    onClick={() => handleSelectBatch(batch.id)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <td>
+                      <button
+                        type="button"
+                        className={styles.batchButton}
+                        onClick={() => handleSelectBatch(batch.id)}
+                      >
+                        {batch.batchId}
+                        <span>{batch.productName}</span>
+                      </button>
+                    </td>
+                    <td className={`${styles.numeric} ${styles.highlightValue}`}>
+                      {numberFormat.format(batch.totalKgCO2e)}
+                    </td>
+                    <td>
+                      <span className={styles.securityBadge} style={{ fontSize: '11px', padding: '2px 8px' }}>
+                        _tide_supplier_internal
+                      </span>
+                    </td>
+                    <td style={{ color: 'var(--muted)', fontSize: '12.5px' }}>
+                      {dateFormat.format(new Date(batch.createdAt))}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Kết quả giải mã thành công hiển thị ở cột chính nếu có */}
+        {decryptedPayload && (
+          <div style={{ marginTop: '20px', padding: '20px', borderRadius: '8px', border: '1px solid #bbf7d0', background: '#f0fdf4' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#15803d', fontWeight: 600, marginBottom: '14px', fontSize: '14px' }}>
+              <span>✓</span> GIẢI MÃ THÀNH CÔNG: Dữ liệu hoạt động gốc đã được khôi phục nguyên vẹn
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+              <div style={{ background: '#ffffff', padding: '12px', borderRadius: '6px', border: '1px solid #dcfce7' }}>
+                <div style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase' }}>Điện năng</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', marginTop: '2px' }}>
+                  {numberFormat.format(decryptedPayload.input.electricityKwh)} kWh
+                </div>
+                <div style={{ fontSize: '12px', color: '#15803d', marginTop: '2px' }}>
+                  {numberFormat.format(decryptedPayload.result.breakdown.electricityKgCO2e)} kg CO₂e
+                </div>
+              </div>
+
+              <div style={{ background: '#ffffff', padding: '12px', borderRadius: '6px', border: '1px solid #dcfce7' }}>
+                <div style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase' }}>Vật liệu ({decryptedPayload.input.materialType})</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', marginTop: '2px' }}>
+                  {numberFormat.format(decryptedPayload.input.materialKg)} kg
+                </div>
+                <div style={{ fontSize: '12px', color: '#15803d', marginTop: '2px' }}>
+                  {numberFormat.format(decryptedPayload.result.breakdown.materialsKgCO2e)} kg CO₂e
+                </div>
+              </div>
+
+              <div style={{ background: '#ffffff', padding: '12px', borderRadius: '6px', border: '1px solid #dcfce7' }}>
+                <div style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase' }}>Vận tải đầu vào</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', marginTop: '2px' }}>
+                  {numberFormat.format(decryptedPayload.input.inboundTransportTonKm)} tấn-km
+                </div>
+                <div style={{ fontSize: '12px', color: '#15803d', marginTop: '2px' }}>
+                  {numberFormat.format(decryptedPayload.result.breakdown.transportKgCO2e)} kg CO₂e
+                </div>
+              </div>
+
+              <div style={{ background: '#ffffff', padding: '12px', borderRadius: '6px', border: '1px solid #dcfce7' }}>
+                <div style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase' }}>Chất thải & hao hụt</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', marginTop: '2px' }}>
+                  {numberFormat.format(decryptedPayload.input.wasteKg)} kg
+                </div>
+                <div style={{ fontSize: '12px', color: '#15803d', marginTop: '2px' }}>
+                  {numberFormat.format(decryptedPayload.result.breakdown.wasteKgCO2e)} kg CO₂e
+                </div>
+              </div>
+            </div>
+
+            {decryptedPayload.evidence && (
+              <div style={{ background: '#ffffff', padding: '12px', borderRadius: '6px', border: '1px solid #bae6fd' }}>
+                <div style={{ fontSize: '12px', color: '#0369a1', fontWeight: 600, marginBottom: '4px' }}>
+                  Ghi chú chứng từ xác thực đã giải mã:
+                </div>
+                <div style={{ color: 'var(--text)', fontSize: '13px' }}>
+                  {decryptedPayload.evidence.text}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* Cột phụ: Kiểm chứng mật mã (Cryptographic Inspector) */}
+      <aside className={styles.asidePanel} aria-labelledby="inspector-aside-title">
+        <h3 id="inspector-aside-title" className={styles.asideTitle}>
+          Kiểm chứng mật mã E2EE
+        </h3>
+
+        {currentBatch && (
+          <>
+            <div className={styles.asideCard}>
+              <div className={styles.asideCardTitle}>
+                <span>📦</span> Lô được chọn: {currentBatch.batchId}
+              </div>
+              <dl className={styles.metadata}>
+                <div>
+                  <dt>Sản phẩm</dt>
+                  <dd>{currentBatch.productName}</dd>
+                </div>
+                <div>
+                  <dt>UUID Bản ghi</dt>
+                  <dd style={{ fontFamily: 'monospace', fontSize: '11.5px' }}>
+                    {currentBatch.id.slice(0, 16)}...
+                  </dd>
+                </div>
+                <div>
+                  <dt>Thẻ niêm phong</dt>
+                  <dd>_tide_supplier_internal</dd>
+                </div>
+              </dl>
+            </div>
+
+            <div className={styles.asideCard}>
+              <div className={styles.asideCardTitle}>
+                <span>🔐</span> Bản mã thô lưu trên server
+              </div>
+              <p className={styles.muted} style={{ fontSize: '12px' }}>
+                Cơ sở dữ liệu chỉ nhìn thấy chuỗi an toàn sau:
+              </p>
+              <div className={styles.codeBlock} style={{ maxHeight: '120px' }}>
+                {currentBatch.encryptedInput.serialized}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <button
+                type="button"
+                className={`${styles.btn} ${styles.btnPrimary}`}
+                onClick={handleDecryptOwner}
+                disabled={isDecrypting}
+              >
+                {isDecrypting ? 'Đang giải mã...' : '🔑 Giải mã bằng khóa Supplier'}
+              </button>
+
+              <button
+                type="button"
+                className={`${styles.btn} ${styles.btnDanger}`}
+                onClick={handleSimulateUnauthorized}
+                disabled={isDecrypting}
+                title="Mô phỏng truy cập khi không có quyền hợp lệ"
+              >
+                🛡️ Thử giải mã trái phép
+              </button>
+            </div>
+
+            {errorStatus && (
+              <div
+                className={errorStatus.includes('NGĂN CHẶN THÀNH CÔNG') ? styles.alertWarning : styles.alertDanger}
+                style={{ marginTop: '8px' }}
+              >
+                {errorStatus}
+              </div>
+            )}
+          </>
+        )}
+      </aside>
     </div>
   );
 };

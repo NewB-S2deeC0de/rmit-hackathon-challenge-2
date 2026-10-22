@@ -35,6 +35,9 @@ export interface SupplierSummaryPreviewProps {
   onBackToEdit: () => void;
 }
 
+const numberFormat = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 2 });
+const unitFormat = new Intl.NumberFormat('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+
 export const SupplierSummaryPreview: React.FC<SupplierSummaryPreviewProps> = ({
   input,
   result,
@@ -42,156 +45,197 @@ export const SupplierSummaryPreview: React.FC<SupplierSummaryPreviewProps> = ({
   onConfirmProceedToEncryption,
   onBackToEdit
 }) => {
-  // Tính toán số lượng suy đoán để hiển thị minh bạch cho nhà cung cấp
+  // Tính toán số lượng suy đoán theo toán học để minh bạch
   const deducedQuantity = Math.round(result.totalKgCO2e / result.perProductKgCO2e);
 
   return (
-    <div className={styles.glassCard}>
-      <div className={styles.cardHeader}>
-        <h2>
-          <span>📊</span> Kết Quả Dấu Chân Carbon & Xem Trước Phân Định Dữ Liệu
-        </h2>
-        <div className={styles.badgeGroup}>
-          <span className={styles.roleBadge}>Phiên bản: {result.calculationVersion}</span>
-          <span className={styles.securityBadge}>Hệ số: {result.factorVersion}</span>
-        </div>
-      </div>
-
-      {/* Hero Metrics */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '8px', padding: '16px 20px' }}>
-          <div style={{ color: '#047857', fontSize: '0.85rem', marginBottom: '4px', fontWeight: 600 }}>Tổng Phát Thải Lô Hàng (Total)</div>
-          <div style={{ fontSize: '1.8rem', fontWeight: '800', color: '#065f46' }}>
-            {result.totalKgCO2e.toLocaleString('vi-VN')} <span style={{ fontSize: '0.9rem', fontWeight: 'normal' }}>kg CO2e</span>
+    <div className={styles.contentGrid}>
+      {/* Cột chính: Kết quả PCF & Phân định ranh giới */}
+      <section className={styles.mainPanel} aria-labelledby="preview-panel-title">
+        <div className={styles.panelHeader}>
+          <div>
+            <h2 id="preview-panel-title" className={styles.panelTitle}>
+              Kết quả tính toán PCF & Phân định dữ liệu
+            </h2>
+            <p className={styles.muted} style={{ marginTop: '2px' }}>
+              Kiểm tra tính toán trước khi kích hoạt quy trình mã hóa bảo mật TideCloak E2EE.
+            </p>
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>Tính từ 4 nguồn phát thải phân bổ</div>
-        </div>
-
-        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '8px', padding: '16px 20px' }}>
-          <div style={{ color: '#0369a1', fontSize: '0.85rem', marginBottom: '4px', fontWeight: 600 }}>Dấu Chân Carbon Mỗi Đơn Vị (PCF)</div>
-          <div style={{ fontSize: '1.8rem', fontWeight: '800', color: '#0c4a6e' }}>
-            {result.perProductKgCO2e.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} <span style={{ fontSize: '0.9rem', fontWeight: 'normal' }}>kg CO2e / sản phẩm</span>
-          </div>
-          <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>Chia đều cho {input.quantity.toLocaleString('vi-VN')} đơn vị sản phẩm</div>
-        </div>
-      </div>
-
-      {/* CẢNH BÁO MINH BẠCH BẮT BUỘC (Mục 5 & Mục 11 trong docs/context.md) */}
-      <div className={styles.alertWarning}>
-        <strong>⚠️ Cảnh Báo Minh Bạch Khi Công Bố Dữ Liệu:</strong>
-        <p style={{ margin: '8px 0 0 0' }}>
-          Bản tóm tắt công khai (<strong>Public Summary</strong>) sẽ được hiển thị công khai cho tất cả Bên mua và khách vãng lai. Mặc dù số lượng sản phẩm nội bộ (<code>quantity</code>) không được công bố trực tiếp, việc công bố đồng thời <strong>Tổng phát thải</strong> ({result.totalKgCO2e} kg CO2e) và <strong>Phát thải trên mỗi sản phẩm</strong> ({result.perProductKgCO2e} kg CO2e) về mặt toán học sẽ cho phép bất kỳ ai tính ngược lại:
-        </p>
-        <div style={{ margin: '8px 0', padding: '8px 12px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '6px', fontFamily: 'monospace', color: '#92400e' }}>
-          Số lượng sản phẩm = {result.totalKgCO2e} / {result.perProductKgCO2e} = {deducedQuantity.toLocaleString('vi-VN')} sản phẩm
-        </div>
-        <p style={{ margin: 0, fontSize: '0.85rem' }}>
-          Hệ thống v1 chấp nhận việc công bố gián tiếp số lượng này để bảo toàn cả hai chỉ số phát thải. Bằng việc bấm tiếp tục, bạn xác nhận đã nắm rõ và đồng thuận với điều này.
-        </p>
-      </div>
-
-      {/* Phân định ranh giới Public vs Private */}
-      <div className={styles.splitGrid}>
-        {/* Cột 1: Dữ liệu công khai (Public Summary) */}
-        <div className={`${styles.columnCard} ${styles.columnPublic}`}>
-          <div className={styles.columnHeader}>
-            <span className={styles.columnTitle}>
-              <span>🌐</span> Bản Tóm Tắt Công Khai (Public)
+          <div className={styles.headingActions}>
+            <span className={styles.securityBadge}>
+              Phương pháp: {result.calculationVersion}
             </span>
-            <span className={styles.publicTag}>Ai cũng có thể xem</span>
-          </div>
-          <p style={{ fontSize: '0.8rem', color: '#8b949e', margin: '0 0 16px 0' }}>
-            Các trường này được lưu trữ bản rõ và cung cấp cho Bên mua để tích hợp báo cáo Scope 3:
-          </p>
-
-          <div className={styles.dataList}>
-            <div className={styles.dataRow}>
-              <span className={styles.dataLabel}>Mã Lô Hàng (batchId):</span>
-              <span className={styles.dataValue}>{input.batchId}</span>
-            </div>
-            <div className={styles.dataRow}>
-              <span className={styles.dataLabel}>Tên Sản Phẩm (productName):</span>
-              <span className={styles.dataValue}>{input.productName}</span>
-            </div>
-            <div className={styles.dataRow}>
-              <span className={styles.dataLabel}>Tổng Phát Thải (totalKgCO2e):</span>
-              <span className={styles.highlightValue}>{result.totalKgCO2e} kg CO2e</span>
-            </div>
-            <div className={styles.dataRow}>
-              <span className={styles.dataLabel}>Suất Phát Thải (perProductKgCO2e):</span>
-              <span className={styles.highlightValue}>{result.perProductKgCO2e} kg CO2e</span>
-            </div>
-            <div className={styles.dataRow}>
-              <span className={styles.dataLabel}>Bộ Hệ Số (factorVersion):</span>
-              <span className={styles.dataValue}>{result.factorVersion}</span>
-            </div>
-            <div className={styles.dataRow}>
-              <span className={styles.dataLabel}>Phiên Bản Tính (calculationVersion):</span>
-              <span className={styles.dataValue}>{result.calculationVersion}</span>
-            </div>
-            <div className={styles.dataRow}>
-              <span className={styles.dataLabel}>Mức Đảm Bảo (assuranceLevel):</span>
-              <span className={styles.dataValue}>supplier-reported</span>
-            </div>
           </div>
         </div>
 
-        {/* Cột 2: Dữ liệu mật được mã hóa (Private Payload) */}
-        <div className={`${styles.columnCard} ${styles.columnPrivate}`}>
-          <div className={styles.columnHeader}>
-            <span className={styles.columnTitle}>
-              <span>🔒</span> Dữ Liệu Bảo Mật (Private Payload)
+        {/* Hero Stats */}
+        <div className={styles.statsRow}>
+          <div className={`${styles.statCard} ${styles.statCardGreen}`}>
+            <span className={styles.statLabel}>Tổng phát thải lô hàng</span>
+            <div className={styles.statValue}>
+              {numberFormat.format(result.totalKgCO2e)}
+              <span className={styles.statUnit}>kg CO₂e</span>
+            </div>
+            <span className={styles.statDesc}>
+              Tính từ 4 nguồn phát thải phân bổ nội bộ
             </span>
-            <span className={styles.privateTag}>Mã hóa E2EE TideCloak</span>
           </div>
-          <p style={{ fontSize: '0.8rem', color: '#8b949e', margin: '0 0 16px 0' }}>
-            Tuyệt đối bảo mật, máy chủ và Bên mua không thể giải mã nếu không có quyền QEA:
-          </p>
 
-          <div className={styles.dataList}>
-            <div className={styles.dataRow}>
-              <span className={styles.dataLabel}>Điện Năng Tiêu Thụ:</span>
-              <span className={styles.dataValue}>{input.electricityKwh.toLocaleString('vi-VN')} kWh ({result.breakdown.electricityKgCO2e} kg CO2e)</span>
+          <div className={`${styles.statCard} ${styles.statCardBlue}`}>
+            <span className={styles.statLabel}>Suất phát thải mỗi sản phẩm</span>
+            <div className={styles.statValue}>
+              {unitFormat.format(result.perProductKgCO2e)}
+              <span className={styles.statUnit}>kg CO₂e / sp</span>
             </div>
-            <div className={styles.dataRow}>
-              <span className={styles.dataLabel}>Khối Lượng Vật Liệu:</span>
-              <span className={styles.dataValue}>{input.materialKg.toLocaleString('vi-VN')} kg ({result.breakdown.materialsKgCO2e} kg CO2e)</span>
-            </div>
-            <div className={styles.dataRow}>
-              <span className={styles.dataLabel}>Vận Tải Đầu Vào:</span>
-              <span className={styles.dataValue}>{input.inboundTransportTonKm.toLocaleString('vi-VN')} tấn-km ({result.breakdown.transportKgCO2e} kg CO2e)</span>
-            </div>
-            <div className={styles.dataRow}>
-              <span className={styles.dataLabel}>Chất Thải & Hao Hụt:</span>
-              <span className={styles.dataValue}>{input.wasteKg.toLocaleString('vi-VN')} kg ({result.breakdown.wasteKgCO2e} kg CO2e)</span>
-            </div>
-            <div className={styles.dataRow}>
-              <span className={styles.dataLabel}>Bằng Chứng / Chứng Từ (evidence):</span>
-              <span className={styles.dataValue} style={{ maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {evidenceText.trim() ? evidenceText : 'Không đính kèm'}
+            <span className={styles.statDesc}>
+              Chia đều cho {numberFormat.format(input.quantity)} đơn vị sản phẩm
+            </span>
+          </div>
+        </div>
+
+        {/* Cảnh báo minh bạch theo Mục 5 & Mục 11 */}
+        <div className={styles.alertWarning}>
+          <strong>Lưu ý về tính suy đoán số lượng (Mục 5 & 11):</strong>
+          <p style={{ margin: '6px 0 8px 0' }}>
+            Bản tóm tắt công khai (<strong>Public Summary</strong>) sẽ được bên mua nhìn thấy. Việc công bố đồng thời <strong>Tổng phát thải</strong> ({numberFormat.format(result.totalKgCO2e)} kg CO₂e) và <strong>Suất phát thải</strong> ({unitFormat.format(result.perProductKgCO2e)} kg CO₂e/sp) về mặt toán học cho phép người nhận suy ngược lại:
+          </p>
+          <div style={{ padding: '6px 12px', background: '#fef3c7', borderRadius: '4px', fontFamily: 'monospace', fontSize: '13px', color: '#92400e' }}>
+            Số lượng = {numberFormat.format(result.totalKgCO2e)} ÷ {unitFormat.format(result.perProductKgCO2e)} ≈ {numberFormat.format(deducedQuantity)} sản phẩm
+          </div>
+          <p style={{ margin: '8px 0 0 0', fontSize: '12px' }}>
+            Đặc tả ScopeZero v1 chấp nhận điều này để bảo toàn cả hai chỉ số phát thải cho bên mua.
+          </p>
+        </div>
+
+        {/* Phân định 2 cột Public vs Private */}
+        <div className={styles.splitGrid}>
+          {/* Cột 1: Dữ liệu công khai (Public Summary) */}
+          <div className={`${styles.columnCard} ${styles.columnPublic}`}>
+            <div className={styles.columnHeader}>
+              <span className={styles.columnTitle}>
+                <span>🌐</span> Bản tóm tắt công khai
               </span>
+              <span className={styles.publicTag}>Bên mua xem được</span>
             </div>
+            <p className={styles.columnNote}>
+              Các trường này lưu trữ bản rõ trên hệ thống để chia sẻ cho Bên mua:
+            </p>
+
+            <dl className={styles.metadata}>
+              <div>
+                <dt>Mã lô hàng (batchId)</dt>
+                <dd>{input.batchId}</dd>
+              </div>
+              <div>
+                <dt>Tên sản phẩm (productName)</dt>
+                <dd>{input.productName}</dd>
+              </div>
+              <div>
+                <dt>Tổng phát thải (totalKgCO2e)</dt>
+                <dd className={styles.highlightValue}>{numberFormat.format(result.totalKgCO2e)} kg CO₂e</dd>
+              </div>
+              <div>
+                <dt>Suất phát thải (perProductKgCO2e)</dt>
+                <dd className={styles.highlightValue}>{unitFormat.format(result.perProductKgCO2e)} kg CO₂e/sp</dd>
+              </div>
+              <div>
+                <dt>Bộ hệ số (factorVersion)</dt>
+                <dd>{result.factorVersion}</dd>
+              </div>
+              <div>
+                <dt>Phiên bản tính (calculationVersion)</dt>
+                <dd>{result.calculationVersion}</dd>
+              </div>
+              <div>
+                <dt>Mức đảm bảo (assuranceLevel)</dt>
+                <dd>supplier-reported</dd>
+              </div>
+            </dl>
+          </div>
+
+          {/* Cột 2: Dữ liệu mật (Private Payload) */}
+          <div className={`${styles.columnCard} ${styles.columnPrivate}`}>
+            <div className={styles.columnHeader}>
+              <span className={styles.columnTitle}>
+                <span>🔒</span> Dữ liệu mật (Private Payload)
+              </span>
+              <span className={styles.privateTag}>Mã hóa E2EE TideCloak</span>
+            </div>
+            <p className={styles.columnNote}>
+              Máy chủ backend và Bên mua hoàn toàn không thể giải mã nội dung này:
+            </p>
+
+            <dl className={styles.metadata}>
+              <div>
+                <dt>Điện năng tiêu thụ</dt>
+                <dd>{numberFormat.format(input.electricityKwh)} kWh ({numberFormat.format(result.breakdown.electricityKgCO2e)} kg CO₂e)</dd>
+              </div>
+              <div>
+                <dt>Khối lượng vật liệu</dt>
+                <dd>{numberFormat.format(input.materialKg)} kg ({numberFormat.format(result.breakdown.materialsKgCO2e)} kg CO₂e)</dd>
+              </div>
+              <div>
+                <dt>Vận tải đầu vào</dt>
+                <dd>{numberFormat.format(input.inboundTransportTonKm)} tấn-km ({numberFormat.format(result.breakdown.transportKgCO2e)} kg CO₂e)</dd>
+              </div>
+              <div>
+                <dt>Chất thải & hao hụt</dt>
+                <dd>{numberFormat.format(input.wasteKg)} kg ({numberFormat.format(result.breakdown.wasteKgCO2e)} kg CO₂e)</dd>
+              </div>
+              <div>
+                <dt>Chứng từ kèm theo</dt>
+                <dd style={{ maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {evidenceText.trim() ? evidenceText : 'Không có'}
+                </dd>
+              </div>
+            </dl>
           </div>
         </div>
-      </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
-        <button
-          type="button"
-          className={`${styles.btn} ${styles.btnSecondary}`}
-          onClick={onBackToEdit}
-        >
-          <span>⬅️</span> Quay Lại Chỉnh Sửa Biểu Mẫu
-        </button>
+        {/* Thanh nút bấm hành động */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--rule)' }}>
+          <button
+            type="button"
+            className={`${styles.btn} ${styles.btnSecondary}`}
+            onClick={onBackToEdit}
+          >
+            ← Sửa lại biểu mẫu
+          </button>
 
-        <button
-          type="button"
-          className={`${styles.btn} ${styles.btnPrimary}`}
-          onClick={onConfirmProceedToEncryption}
-        >
-          <span>🔐</span> Xác Nhận & Tiến Hành Mã Hóa E2EE
-        </button>
-      </div>
+          <button
+            type="button"
+            className={`${styles.btn} ${styles.btnPrimary}`}
+            onClick={onConfirmProceedToEncryption}
+          >
+            Xác nhận & Tiến hành mã hóa E2EE →
+          </button>
+        </div>
+      </section>
+
+      {/* Cột phụ: Tóm tắt phạm vi & Quy trình mã hóa */}
+      <aside className={styles.asidePanel} aria-labelledby="preview-aside-title">
+        <h3 id="preview-aside-title" className={styles.asideTitle}>
+          Quy chế công bố
+        </h3>
+
+        <div className={styles.asideCard}>
+          <div className={styles.asideCardTitle}>
+            <span>📋</span> Mức độ bảo đảm
+          </div>
+          <p className={styles.muted}>
+            Hồ sơ sẽ mang nhãn <strong>&ldquo;supplier-reported&rdquo;</strong> (nhà cung cấp tự khai báo). Tuyệt đối không tự ý gán nhãn đã kiểm toán hay bảo đảm độc lập.
+          </p>
+        </div>
+
+        <div className={styles.asideCard}>
+          <div className={styles.asideCardTitle}>
+            <span>🔐</span> Thẻ phân quyền TideCloak
+          </div>
+          <p className={styles.muted} style={{ fontSize: '12px' }}>
+            Bản mã được niêm phong bằng thẻ nội bộ <code>_tide_supplier_internal</code>. Chỉ tài khoản sở hữu hoặc quy trình giải mã được cấp phép mới giải mã được.
+          </p>
+        </div>
+      </aside>
     </div>
   );
 };

@@ -194,73 +194,108 @@ export default function SupplierPage() {
   };
 
   return (
-    <div className={styles.container}>
-      {/* Header & Identity */}
-      <header className={styles.header}>
-        <div className={styles.titleArea}>
-          <h1>
-            <span>🌱</span> ScopeZero — Cổng Nhà Cung Cấp (Supplier Portal)
-          </h1>
-          <p>
-            Khai báo dấu chân carbon sản phẩm Scope 3 & Bảo vệ bí mật kinh doanh bằng TideCloak E2EE
-          </p>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
-          <div className={styles.badgeGroup}>
-            <a href="/" style={{ color: '#334155', textDecoration: 'none', padding: '5px 12px', fontSize: '12px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: 500 }}>
-              🏠 Trang Chủ
-            </a>
-            <a href="/buyer" style={{ color: '#0369a1', textDecoration: 'none', padding: '5px 12px', fontSize: '12px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '6px', fontWeight: 500 }}>
-              🛒 Sang Cổng Bên Mua ➔
-            </a>
-          </div>
-          <div className={styles.badgeGroup}>
-            <span className={styles.roleBadge}>
-              <span>🏢</span> Role: supplier (Company A)
-            </span>
-            <span className={styles.securityBadge}>
-              <span>🛡️</span> TideCloak E2EE Active
-            </span>
-          </div>
-        </div>
+    <div className={styles.workspace}>
+      {/* Universal Topbar (Identical layout to Buyer Portal) */}
+      <header className={styles.topbar}>
+        <a href="/" className={styles.brand} aria-label="ScopeZero — Trang chủ">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+            <path d="M21 5H10a5 5 0 0 0 0 10h8a4 4 0 0 1 0 8H7" stroke="currentColor" strokeWidth="2.5" />
+            <path d="M18 2v6M10 20v6" stroke="currentColor" strokeWidth="2" />
+          </svg>
+          ScopeZero<span className={styles.brandDivider}>/</span><span className={styles.brandScope}>Supplier</span>
+        </a>
+        <nav className={styles.navLinks} aria-label="Điều hướng chính">
+          <a href="/" className={styles.navLink}>Tổng quan</a>
+          <a href="/supplier" className={`${styles.navLink} ${styles.navLinkActive}`} aria-current="page">🏢 Nhà cung cấp</a>
+          <a href="/buyer" className={styles.navLink}>🛒 Bên mua</a>
+        </nav>
+        <span className={styles.securityBadge}>TideCloak E2EE bảo vệ</span>
       </header>
 
-      {/* Navigation Tabs */}
-      <nav className={styles.tabNav}>
-        <button
-          type="button"
-          className={`${styles.tabBtn} ${activeTab === 'form' ? styles.tabBtnActive : ''}`}
-          onClick={() => setActiveTab('form')}
-        >
-          <span>📝</span> 1. Khai Báo Lô Hàng
-        </button>
+      {/* Main Sheet Container */}
+      <main className={styles.sheet} id="supplier-workspace">
+        <div className={styles.heading}>
+          <div>
+            <h1>Khai báo & Quản lý phát thải nhà cung cấp</h1>
+            <p className={styles.subtitle}>
+              Khai báo dữ liệu phát thải Scope 3, tính toán dấu chân carbon (PCF v1) và bảo vệ bí mật kinh doanh nguyên vật liệu bằng mã hóa TideCloak E2EE trước khi gửi lên hệ thống.
+            </p>
+          </div>
+          <div className={styles.headingActions}>
+            <button
+              type="button"
+              className={`${styles.btn} ${styles.btnSecondary}`}
+              onClick={handleFillDemo}
+              title="Điền dữ liệu mẫu chuẩn DEMO-001"
+            >
+              <span aria-hidden="true">⚡</span> Mẫu DEMO-001
+            </button>
+            <button
+              type="button"
+              className={`${styles.btn} ${styles.btnGhost}`}
+              onClick={handleResetForm}
+              title="Xóa trắng dữ liệu nhập"
+            >
+              <span aria-hidden="true">↻</span> Xóa trắng
+            </button>
+          </div>
+        </div>
 
-        <button
-          type="button"
-          className={`${styles.tabBtn} ${activeTab === 'preview' ? styles.tabBtnActive : ''}`}
-          onClick={() => {
-            if (validatedInput && pcfResult) {
-              setActiveTab('preview');
-            } else {
-              handleSubmitCalculate();
-            }
-          }}
-        >
-          <span>📊</span> 2. Xem Trước PCF & Phân Định Dữ Liệu
-        </button>
+        {/* 3-Column Context Stats Bar (Identical to Buyer Portal) */}
+        <div className={styles.context}>
+          <div>
+            <span className={styles.contextLabel}>Tài khoản</span>
+            <strong>Supplier (Company A)</strong>
+            <span className={styles.muted}>Xác thực token TideCloak</span>
+          </div>
+          <div>
+            <span className={styles.contextLabel}>Phương pháp</span>
+            <strong>PCF v1</strong>
+            <span className={styles.muted}>Hệ số demo-factors-v1 (tính máy khách)</span>
+          </div>
+          <div>
+            <span className={styles.contextLabel}>Bảo vệ dữ liệu</span>
+            <strong>E2EE Client Encryption</strong>
+            <span className={styles.muted}>Thẻ _tide_supplier_internal</span>
+          </div>
+        </div>
 
-        <button
-          type="button"
-          className={`${styles.tabBtn} ${activeTab === 'decryption' ? styles.tabBtnActive : ''}`}
-          onClick={() => setActiveTab('decryption')}
-        >
-          <span>🔓</span> 3. Giải Mã Lô Của Tôi ({submittedBatches.length})
-        </button>
-      </nav>
+        {/* Navigation Tabs */}
+        <nav className={styles.tabNav} aria-label="Các bước tác vụ">
+          <button
+            type="button"
+            className={`${styles.tabBtn} ${activeTab === 'form' ? styles.tabBtnActive : ''}`}
+            onClick={() => setActiveTab('form')}
+          >
+            <span>1. Khai báo lô hàng</span>
+          </button>
 
-      {/* Main Tab Panels */}
-      <main>
+          <button
+            type="button"
+            className={`${styles.tabBtn} ${activeTab === 'preview' ? styles.tabBtnActive : ''}`}
+            onClick={() => {
+              if (validatedInput && pcfResult) {
+                setActiveTab('preview');
+              } else {
+                handleSubmitCalculate();
+              }
+            }}
+          >
+            <span>2. Xem trước PCF & Phân định</span>
+            {pcfResult && <span className={styles.tabCount}>Sẵn sàng</span>}
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.tabBtn} ${activeTab === 'decryption' ? styles.tabBtnActive : ''}`}
+            onClick={() => setActiveTab('decryption')}
+          >
+            <span>3. Lô đã nộp & Giải mã</span>
+            <span className={styles.tabCount}>{submittedBatches.length}</span>
+          </button>
+        </nav>
+
+        {/* Tab Panels */}
         {activeTab === 'form' && (
           <SupplierBatchForm
             values={formValues}
@@ -289,6 +324,12 @@ export default function SupplierPage() {
             onBackToForm={() => setActiveTab('form')}
           />
         )}
+
+        {/* Footer (Identical to Buyer Portal) */}
+        <footer className={styles.footer}>
+          <span>ScopeZero · Supplier workspace</span>
+          <span>Bảo mật dữ liệu bằng TideCloak E2EE</span>
+        </footer>
       </main>
 
       {/* Modal Tiến Trình Mã Hóa & Nộp Hồ Sơ */}
@@ -300,11 +341,9 @@ export default function SupplierPage() {
         submissionResponse={submissionResponse}
         onClose={() => {
           if (submissionStage === 'success') {
-            // Sau khi nộp thành công, làm mới form cho lô tiếp theo
             handleResetForm();
             setActiveTab('form');
           } else if (submissionStage === 'conflict_409') {
-            // Nếu trùng mã lô, quay lại form và giữ nguyên dữ liệu
             setActiveTab('form');
           }
           setSubmissionStage('idle');

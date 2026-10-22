@@ -47,17 +47,17 @@ export const SupplierSubmissionModal: React.FC<SupplierSubmissionModalProps> = (
   };
 
   return (
-    <div className={styles.modalOverlay}>
+    <div className={styles.modalOverlay} role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div className={styles.modalContent}>
         {/* Stepper Indicator */}
         <div className={styles.stepIndicator}>
           <div className={styles.stepItem}>
             <div className={getStepStatus(1)}>1</div>
-            <span className={styles.stepLabel}>Chuẩn Bị</span>
+            <span className={styles.stepLabel}>Chuẩn bị</span>
           </div>
           <div className={styles.stepItem}>
             <div className={getStepStatus(2)}>2</div>
-            <span className={styles.stepLabel}>Mã Hóa Tide</span>
+            <span className={styles.stepLabel}>Mã hóa Tide</span>
           </div>
           <div className={styles.stepItem}>
             <div className={getStepStatus(3)}>3</div>
@@ -67,35 +67,39 @@ export const SupplierSubmissionModal: React.FC<SupplierSubmissionModalProps> = (
             <div className={stage === 'success' ? styles.stepCircleCompleted : styles.stepCircle}>
               {stage === 'success' ? '✓' : '4'}
             </div>
-            <span className={styles.stepLabel}>Xác Nhận</span>
+            <span className={styles.stepLabel}>Xác nhận</span>
           </div>
         </div>
 
         {/* Content based on Stage */}
         {stage === 'preparing' && (
-          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+          <div style={{ textAlign: 'center', padding: '16px 0' }}>
             <div className={styles.spinner} style={{ marginBottom: '16px' }} />
-            <h3 style={{ margin: '0 0 8px 0', color: '#0f172a' }}>Đang chuẩn bị hồ sơ lô hàng...</h3>
-            <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
-              Trích xuất dữ liệu công khai và tổng hợp Private Batch Payload theo đúng chuẩn JSON.
+            <h3 id="modal-title" style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 600 }}>
+              Đang chuẩn bị hồ sơ lô hàng...
+            </h3>
+            <p className={styles.muted}>
+              Trích xuất dữ liệu công khai và tổng hợp Private Batch Payload theo đúng chuẩn hợp đồng.
             </p>
           </div>
         )}
 
         {stage === 'encrypting' && (
-          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+          <div style={{ textAlign: 'center', padding: '16px 0' }}>
             <div className={styles.spinner} style={{ marginBottom: '16px' }} />
-            <h3 style={{ margin: '0 0 8px 0', color: '#059669' }}>Đang mã hóa đầu cuối với TideCloak SDK...</h3>
-            <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '16px' }}>
+            <h3 id="modal-title" style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 600, color: '#047857' }}>
+              Đang mã hóa đầu cuối với TideCloak SDK...
+            </h3>
+            <p className={styles.muted} style={{ marginBottom: '16px' }}>
               Áp dụng thẻ quyền <code>_tide_supplier_internal</code> và thuật toán mật mã phần cứng.
             </p>
             {encryptedPayload && (
               <div style={{ textAlign: 'left' }}>
-                <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', marginBottom: '4px' }}>
-                  Bản mã thô sinh ra từ SDK (Encrypted Ciphertext Preview):
+                <span style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>
+                  Bản mã thô sinh ra từ SDK:
                 </span>
-                <div className={styles.codeBlock}>
-                  {encryptedPayload.serialized.slice(0, 150)}...
+                <div className={styles.codeBlock} style={{ maxHeight: '100px' }}>
+                  {encryptedPayload.serialized.slice(0, 160)}...
                 </div>
               </div>
             )}
@@ -103,47 +107,57 @@ export const SupplierSubmissionModal: React.FC<SupplierSubmissionModalProps> = (
         )}
 
         {stage === 'submitting' && (
-          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+          <div style={{ textAlign: 'center', padding: '16px 0' }}>
             <div className={styles.spinner} style={{ marginBottom: '16px' }} />
-            <h3 style={{ margin: '0 0 8px 0', color: '#0284c7' }}>Đang gửi hồ sơ lên ScopeZero Backend...</h3>
-            <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
+            <h3 id="modal-title" style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 600, color: '#0369a1' }}>
+              Đang gửi hồ sơ lên ScopeZero Backend...
+            </h3>
+            <p className={styles.muted}>
               POST /api/batches — Chỉ truyền tóm tắt công khai và bản mã hóa.
             </p>
           </div>
         )}
 
         {stage === 'success' && submissionResponse && (
-          <div style={{ padding: '10px 0' }}>
+          <div style={{ padding: '8px 0' }}>
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-              <div style={{ fontSize: '3rem', color: '#059669', marginBottom: '8px' }}>🎉</div>
-              <h3 style={{ margin: '0 0 8px 0', color: '#0f172a' }}>Nộp Hồ Sơ Lô Hàng Thành Công!</h3>
-              <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>
-                Hồ sơ đã được lưu trữ an toàn. Dữ liệu nguồn được bảo vệ bằng TideCloak E2EE.
+              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#ecfdf5', color: '#059669', fontSize: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px auto' }}>
+                ✓
+              </div>
+              <h3 id="modal-title" style={{ margin: '0 0 6px 0', fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>
+                Nộp hồ sơ lô hàng thành công
+              </h3>
+              <p className={styles.muted}>
+                Hồ sơ đã được lưu trữ an toàn. Dữ liệu hoạt động nguồn được bảo vệ bằng TideCloak E2EE.
               </p>
             </div>
 
-            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '16px', marginBottom: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-                <span style={{ color: '#64748b' }}>Mã Lô Hàng (batchId):</span>
-                <span style={{ color: '#0f172a', fontWeight: 'bold' }}>{batchId}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-                <span style={{ color: '#64748b' }}>Định Danh Máy Chủ (UUID):</span>
-                <span style={{ color: '#0284c7', fontFamily: 'monospace' }}>{submissionResponse.id}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                <span style={{ color: '#64748b' }}>Thời Gian Tiếp Nhận:</span>
-                <span style={{ color: '#334155' }}>{new Date(submissionResponse.createdAt).toLocaleString('vi-VN')}</span>
-              </div>
+            <div style={{ background: '#f8fafc', border: '1px solid var(--border)', borderRadius: '8px', padding: '16px', marginBottom: '24px' }}>
+              <dl className={styles.metadata}>
+                <div>
+                  <dt>Mã lô hàng (batchId)</dt>
+                  <dd>{batchId}</dd>
+                </div>
+                <div>
+                  <dt>Định danh máy chủ (UUID)</dt>
+                  <dd style={{ fontFamily: 'monospace', fontSize: '12px', color: '#0369a1' }}>
+                    {submissionResponse.id}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Thời gian tiếp nhận (UTC)</dt>
+                  <dd>{new Date(submissionResponse.createdAt).toISOString()}</dd>
+                </div>
+              </dl>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
               <button
                 type="button"
                 className={`${styles.btn} ${styles.btnSecondary}`}
                 onClick={onClose}
               >
-                Tạo Lô Hàng Khác
+                Khai báo lô khác
               </button>
               {onGoToDecryption && (
                 <button
@@ -151,7 +165,7 @@ export const SupplierSubmissionModal: React.FC<SupplierSubmissionModalProps> = (
                   className={`${styles.btn} ${styles.btnPrimary}`}
                   onClick={onGoToDecryption}
                 >
-                  <span>🔓</span> Xem & Giải Mã Lô Này
+                  Xem & Giải mã lô này →
                 </button>
               )}
             </div>
@@ -159,46 +173,46 @@ export const SupplierSubmissionModal: React.FC<SupplierSubmissionModalProps> = (
         )}
 
         {stage === 'conflict_409' && (
-          <div style={{ padding: '10px 0' }}>
-            <div className={styles.alertWarning} style={{ marginBottom: '16px' }}>
-              <strong style={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>⚠️</span> Lỗi 409: Trùng Lặp Mã Lô Hàng (Conflict)
+          <div style={{ padding: '8px 0' }}>
+            <div className={styles.alertWarning} style={{ marginBottom: '20px' }}>
+              <strong style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                Lỗi 409: Trùng lặp mã lô hàng (Conflict)
               </strong>
               <p style={{ margin: '8px 0 0 0' }}>
-                Mã lô hàng <strong>&ldquo;{batchId}&rdquo;</strong> đã tồn tại trong cơ sở dữ liệu của nhà cung cấp này. Quy chuẩn ScopeZero v1 không cho phép ghi đè tự động.
+                Mã lô hàng <strong>&ldquo;{batchId}&rdquo;</strong> đã tồn tại trong hệ thống. Quy chuẩn ScopeZero v1 không cho phép tự động ghi đè bản ghi cũ.
               </p>
-              <p style={{ margin: '8px 0 0 0', fontWeight: 'bold', color: '#34d399' }}>
-                ✅ Toàn bộ dữ liệu bạn vừa nhập đã được giữ nguyên vẹn trên biểu mẫu. Bạn chỉ cần đổi mã lô hàng khác (VD: thêm hậu tố -v2 hoặc số lô mới) và bấm gửi lại.
+              <p style={{ margin: '8px 0 0 0', fontWeight: 600, color: '#047857' }}>
+                Toàn bộ dữ liệu bạn đã nhập được giữ nguyên trên biểu mẫu. Vui lòng đổi mã lô hàng khác (VD: thêm số đuôi hoặc hậu tố) rồi bấm gửi lại.
               </p>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <button
                 type="button"
                 className={`${styles.btn} ${styles.btnPrimary}`}
                 onClick={onClose}
               >
-                Đóng & Sửa Mã Lô Hàng
+                Đóng & Đổi mã lô hàng
               </button>
             </div>
           </div>
         )}
 
         {stage === 'error' && (
-          <div style={{ padding: '10px 0' }}>
-            <div className={styles.alertDanger} style={{ marginBottom: '16px' }}>
-              <strong style={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>❌</span> Thao Tác Thất Bại
+          <div style={{ padding: '8px 0' }}>
+            <div className={styles.alertDanger} style={{ marginBottom: '20px' }}>
+              <strong style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                Thao tác gửi hồ sơ thất bại
               </strong>
               <p style={{ margin: '8px 0 0 0' }}>
-                {errorMessage || 'Đã xảy ra lỗi không xác định trong quá trình xử lý hoặc kết nối.'}
+                {errorMessage || 'Đã xảy ra sự cố trong quá trình mã hóa hoặc kết nối mạng máy chủ.'}
               </p>
-              <p style={{ margin: '8px 0 0 0', color: '#c9d1d9', fontSize: '0.85rem' }}>
-                Dữ liệu trên biểu mẫu của bạn đã được bảo toàn.
+              <p style={{ margin: '8px 0 0 0', fontSize: '12px' }}>
+                Dữ liệu trên biểu mẫu của bạn đã được bảo toàn nguyên vẹn.
               </p>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
               <button
                 type="button"
                 className={`${styles.btn} ${styles.btnSecondary}`}
@@ -212,7 +226,7 @@ export const SupplierSubmissionModal: React.FC<SupplierSubmissionModalProps> = (
                   className={`${styles.btn} ${styles.btnPrimary}`}
                   onClick={onRetry}
                 >
-                  Thử Lại
+                  Thử lại
                 </button>
               )}
             </div>
