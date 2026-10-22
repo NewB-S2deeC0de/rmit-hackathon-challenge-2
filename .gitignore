@@ -12,11 +12,15 @@ npm-debug.log*
 .env*
 !.env.example
 
+# Local TideCloak bootstrap credentials & data
+infra/tidecloak/.env
+infra/tidecloak/data/
+
 # Storage phát sinh lúc chạy thử nghiệm (không commit)
 storage/*.json
 storage/*.tmp
 !storage/.gitkeep
 
-# Thư mục kiểm thử cục bộ độc lập của Thành viên 3 (tránh xung đột nhánh)
+# Thư mục kiểm thử cục bộ độc lập
 demo-local/
 .superpowers/

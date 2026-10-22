@@ -1,24 +1,21 @@
 /**
  * @file src/types.ts
  * @description Hợp đồng kiểu dữ liệu dùng chung (Single Source of Truth) — Unified Contract v1.
- * Theo đặc tả ngày 22/10/2026. Đây là nơi khai báo duy nhất; không duy trì bản sao ở src/contracts/*.
+ * Hợp nhất đầy đủ các định nghĩa từ tất cả thành viên (Member 1, 2, 3, 4).
  */
 
 // ==========================================
 // 1. Phân loại cố định (v1 MVP)
 // ==========================================
 
-/** v1 MVP chỉ hỗ trợ một loại vật liệu minh họa */
 export type MaterialType = "demo-material-A";
-
-/** Mức độ đảm bảo: Supplier tự khai báo, chưa qua kiểm toán độc lập */
 export type AssuranceLevel = "supplier-reported";
-
-/** Vai trò ứng dụng — dùng trong AuthSession phía UI, không dùng làm kiểm quyền server */
 export type AppRole = "supplier" | "buyer";
+export type DemoRole = "supplier" | "buyer" | "admin";
+export type Actor = { id: string; name: string; role: DemoRole };
 
 // ==========================================
-// 2. Dữ liệu Form Supplier (giữ chuỗi để xử lý ô trống)
+// 2. Dữ liệu Form Supplier
 // ==========================================
 
 export interface BatchFormValues {
@@ -30,6 +27,7 @@ export interface BatchFormValues {
   materialKg: string;
   inboundTransportTonKm: string;
   wasteKg: string;
+  evidence?: string;
 }
 
 // ==========================================
@@ -44,7 +42,7 @@ export interface BatchInput {
   electricityKwh: number;        // hữu hạn, 0 – 1.000.000.000
   materialType: MaterialType;
   materialKg: number;            // hữu hạn, 0 – 1.000.000.000
-  inboundTransportTonKm: number; // hữu hạn, 0 – 1.000.000.000 (1 tấn = 1.000 kg)
+  inboundTransportTonKm: number; // hữu hạn, 0 – 1.000.000.000
   wasteKg: number;               // hữu hạn, 0 – 1.000.000.000
 }
 
@@ -58,7 +56,9 @@ export interface PCFResult {
   breakdown: {
     electricityKgCO2e: number;
     materialsKgCO2e: number;
+    materialKgCO2e?: number;
     transportKgCO2e: number;
+    inboundTransportKgCO2e?: number;
     wasteKgCO2e: number;
   };
   factorVersion: "demo-factors-v1";
@@ -66,10 +66,9 @@ export interface PCFResult {
 }
 
 // ==========================================
-// 5. Bằng chứng (mã hóa cùng input, không tham gia phép tính)
+// 5. Bằng chứng
 // ==========================================
 
-/** v1: chỉ hỗ trợ ghi chú văn bản demo; không phải hóa đơn PKI hay upload file */
 export interface EvidenceInput {
   kind: "demo-text";
   text: string; // 1–10.000 ký tự sau trim
@@ -83,7 +82,7 @@ export interface PrivateBatchPayload {
   schemaVersion: 1;
   input: BatchInput;
   result: PCFResult;
-  evidence: EvidenceInput | null;
+  evidence?: EvidenceInput | null;
 }
 
 // ==========================================
@@ -98,20 +97,21 @@ export type ValidationErrorCode =
   | "INVALID_FORMAT";
 
 export interface FieldError {
-  path: string;    // ví dụ: "batchId", "quantity", "materialKg"
-  code: ValidationErrorCode;
+  path: string;
+  code: ValidationErrorCode | string;
   message: string;
 }
+
+export type ValidationErrorItem = FieldError;
 
 export type ValidationResult<T> =
   | { ok: true; value: T; errors?: never }
   | { ok: false; errors: FieldError[]; value?: never };
 
 // ==========================================
-// 8. Phần công bố cho Buyer
+// 8. Phần công bố cho Buyer (Public Summary)
 // ==========================================
 
-/** Dữ liệu công bố minh bạch — Buyer xem không cần đăng nhập (v1: public) */
 export interface PublicSummary {
   batchId: string;
   productName: string;
@@ -119,24 +119,23 @@ export interface PublicSummary {
   perProductKgCO2e: number;
   factorVersion: "demo-factors-v1";
   calculationVersion: "pcf-v1";
-  assuranceLevel: AssuranceLevel; // luôn là "supplier-reported" trong v1
+  assuranceLevel: AssuranceLevel;
 }
 
 // ==========================================
 // 9. Bản mã TideCloak & Lưu trữ Backend
 // ==========================================
 
-/** Wrapper nội bộ — không phải schema chính thức của SDK TideCloak */
 export interface EncryptedPayload {
-  provider: "tidecloak";
+  provider: "tidecloak" | "demo-aes-gcm";
   formatVersion: 1;
-  serialized: string; // tối đa 200.000 ký tự, không rỗng
+  serialized: string;
 }
 
 export interface StoredBatch {
-  id: string;         // UUID do server sinh
-  supplierId: string; // claim "sub" từ token đã xác minh — không lấy từ JSON request
-  createdAt: string;  // ISO 8601 UTC, do server tạo
+  id: string;
+  supplierId: string;
+  createdAt: string;
   schemaVersion: 1;
   publicSummary: PublicSummary;
   encryptedInput: EncryptedPayload;
@@ -192,14 +191,14 @@ export type ContractErrorCode =
   | "CRYPTO_FAILED"
   | "NETWORK_ERROR";
 
-/** Lỗi chuẩn hóa dùng trong API client, UI components và crypto adapter */
 export class ContractError extends Error {
-  status: number | null; // null cho lỗi validation/local/network
+  status: number | null;
   code: ContractErrorCode;
   fields?: FieldError[];
 
   constructor(
-    optsOrMessage:
+    optsOrMessageOrCode:
+      | ContractErrorCode
       | string
       | {
           message: string;
@@ -207,27 +206,35 @@ export class ContractError extends Error {
           status: number | null;
           fields?: FieldError[];
         },
-    code?: ContractErrorCode,
-    status: number | null = null,
+    codeOrStatus: ContractErrorCode | number | null = null,
+    statusOrMessage: number | null | string = null,
     fields?: FieldError[]
   ) {
-    if (typeof optsOrMessage === "object") {
-      super(optsOrMessage.message);
-      this.status = optsOrMessage.status;
-      this.code = optsOrMessage.code;
-      this.fields = optsOrMessage.fields;
+    if (typeof optsOrMessageOrCode === "object") {
+      super(optsOrMessageOrCode.message);
+      this.status = optsOrMessageOrCode.status;
+      this.code = optsOrMessageOrCode.code;
+      this.fields = optsOrMessageOrCode.fields;
+    } else if (typeof codeOrStatus === "string") {
+      // Called like (message, code, status)
+      super(optsOrMessageOrCode);
+      this.code = codeOrStatus as ContractErrorCode;
+      this.status = typeof statusOrMessage === "number" || statusOrMessage === null ? statusOrMessage : null;
+      this.fields = fields;
     } else {
-      super(optsOrMessage);
-      this.code = code!;
-      this.status = status;
+      // Called like (code, status, message)
+      super(typeof statusOrMessage === "string" ? statusOrMessage : String(optsOrMessageOrCode));
+      this.code = optsOrMessageOrCode as ContractErrorCode;
+      this.status = typeof codeOrStatus === "number" ? codeOrStatus : null;
       this.fields = fields;
     }
     this.name = "ContractError";
+    Object.setPrototypeOf(this, ContractError.prototype);
   }
 }
 
 // ==========================================
-// 12. Giao diện API (dùng để mock và implement)
+// 12. Giao diện Bộ điều hợp (Adapters)
 // ==========================================
 
 export interface BatchApi {
@@ -236,19 +243,16 @@ export interface BatchApi {
   getEncryptedBatch(id: string): Promise<EncryptedPayload>;
 }
 
-// ==========================================
-// 13. Auth và Crypto Adapter
-// ==========================================
-
 export interface AuthSession {
-  subject: string;   // claim "sub" từ token
+  subject: string;
   roles: AppRole[];
 }
 
 export interface AuthAdapter {
-  getSession(): Promise<AuthSession | null>;
-  login(): Promise<void>;
-  logout(): Promise<void>;
+  getSession?(): Promise<AuthSession | null>;
+  login?(): Promise<void>;
+  logout?(): Promise<void>;
+  currentActor?(): Promise<Actor | null>;
 }
 
 export interface BatchCrypto {
@@ -260,18 +264,18 @@ export interface BatchCrypto {
     payload: EncryptedPayload,
     tag?: TideCloakTag
   ): Promise<PrivateBatchPayload>;
+  encrypt?(payload: PrivateBatchPayload): Promise<EncryptedPayload>;
+  decrypt?(payload: EncryptedPayload): Promise<PrivateBatchPayload>;
 }
 
 // ==========================================
-// 14. TideCloak SDK Constants (Mục 22 Đặc tả)
+// 13. TideCloak SDK Constants (Mục 22 Đặc tả)
 // ==========================================
 
-/** Thẻ mã hóa dữ liệu nội bộ của Supplier — yêu cầu khớp chính xác từng ký tự */
 export const TAG_SUPPLIER_INTERNAL = "_tide_supplier_internal" as const;
-
-/** Thẻ mã hóa dữ liệu Scope 3 đã xác minh (hướng mở rộng) */
 export const TAG_SCOPE3_VERIFIED = "_tide_scope3_verified" as const;
 
 export type TideCloakTag =
   | typeof TAG_SUPPLIER_INTERNAL
-  | typeof TAG_SCOPE3_VERIFIED;
+  | typeof TAG_SCOPE3_VERIFIED
+  | string;
