@@ -32,13 +32,13 @@ export function BuyerWorkspace({ source, initialBatches, initialMode = 'api' }: 
     setSecurityTestResult('Đang gửi yêu cầu kiểm tra tới API bảo mật...');
     try {
       const res = await fetch(`/api/batches/${batchRecordId}/encrypted`);
-      if (res.status === 403 || res.status === 401) {
+      if (res.status === 403) {
         setSecurityTestResult('Bảo vệ thành công: HTTP 403 ACCESS_DENIED. Bên mua không có quyền giải mã dữ liệu nguồn.');
       } else {
-        setSecurityTestResult(`Bảo vệ thành công: Truy cập bị từ chối (Mã trạng thái ${res.status}).`);
+        setSecurityTestResult(`HTTP ${res.status}: chưa xác nhận việc từ chối đúng vai trò Buyer.`);
       }
     } catch {
-      setSecurityTestResult('Bảo vệ thành công: Kết nối bị từ chối tại cổng API.');
+      setSecurityTestResult('Không kết nối được backend; chưa kiểm chứng quyền truy cập.');
     }
   };
 

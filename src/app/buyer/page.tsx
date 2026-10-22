@@ -53,7 +53,7 @@ export default function BuyerPage() {
   return (
     <div>
       <DemoAssistant />
-      <BuyerWorkspace initialMode="sample" />
+      <BuyerWorkspace initialMode="api" />
     </div>
   );
 }

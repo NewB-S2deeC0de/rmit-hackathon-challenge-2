@@ -12,7 +12,7 @@ import { DemoAssistant } from '../../components/Demo/DemoAssistant';
 
 export default function AuthPage() {
   const router = useRouter();
-  const { user, isAuthenticated, login, register, logout, loginAsPreset } = useAuth();
+  const { user, isAuthenticated, login, register, logout, loginAsPreset, error } = useAuth();
 
   const [tab, setTab] = useState<'login' | 'register' | 'demo'>('login');
   const [role, setRole] = useState<AppRole>('supplier');
@@ -25,34 +25,37 @@ export default function AuthPage() {
 
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
       setMessage({ text: 'Vui lòng nhập email hoặc tên đăng nhập', type: 'error' });
       return;
     }
-    const loggedIn = login(email, role, name, company);
+    const loggedIn = await login(email, role, name, company);
+    if (!loggedIn) return;
     setMessage({ text: `Đăng nhập thành công với vai trò ${loggedIn.role === 'supplier' ? 'Nhà cung cấp' : 'Bên mua'}.`, type: 'success' });
     setTimeout(() => {
       router.push(loggedIn.role === 'supplier' ? '/supplier' : '/buyer');
     }, 500);
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !name || !company) {
       setMessage({ text: 'Vui lòng điền đầy đủ các thông tin bắt buộc', type: 'error' });
       return;
     }
-    const registered = register({ email, name, company, role, password });
+    const registered = await register({ email, name, company, role, password });
+    if (!registered) return;
     setMessage({ text: 'Đăng ký tài khoản thành công! Đang chuyển hướng...', type: 'success' });
     setTimeout(() => {
       router.push(registered.role === 'supplier' ? '/supplier' : '/buyer');
     }, 500);
   };
 
-  const handleSelectMockAccount = (key: DemoAccountKey) => {
-    const account = loginAsPreset(key);
+  const handleSelectMockAccount = async (key: DemoAccountKey) => {
+    const account = await loginAsPreset(key);
+    if (!account) return;
     setMessage({ text: `Đã kích hoạt tài khoản: ${account.company} (${account.name})`, type: 'success' });
     setTimeout(() => {
       router.push(account.role === 'supplier' ? '/supplier' : '/buyer');
@@ -89,6 +92,7 @@ export default function AuthPage() {
             </p>
           </div>
 
+          {error && <p role="alert">{error}</p>}
           {message && (
             <div className={`${styles.statusMessage} ${message.type === 'success' ? styles.statusSuccess : styles.statusError}`}>
               {message.text}

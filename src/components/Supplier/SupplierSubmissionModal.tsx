@@ -57,7 +57,7 @@ export const SupplierSubmissionModal: React.FC<SupplierSubmissionModalProps> = (
           </div>
           <div className={styles.stepItem}>
             <div className={getStepStatus(2)}>2</div>
-            <span className={styles.stepLabel}>Mã hóa Tide</span>
+            <span className={styles.stepLabel}>Mã hóa demo</span>
           </div>
           <div className={styles.stepItem}>
             <div className={getStepStatus(3)}>3</div>
@@ -88,15 +88,15 @@ export const SupplierSubmissionModal: React.FC<SupplierSubmissionModalProps> = (
           <div style={{ textAlign: 'center', padding: '16px 0' }}>
             <div className={styles.spinner} style={{ marginBottom: '16px' }} />
             <h3 id="modal-title" style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 600, color: '#047857' }}>
-              Đang mã hóa đầu cuối với TideCloak SDK...
+              Đang mã hóa AES-GCM tại trình duyệt...
             </h3>
             <p className={styles.muted} style={{ marginBottom: '16px' }}>
-              Áp dụng thẻ quyền <code>_tide_supplier_internal</code> và thuật toán mật mã phần cứng.
+              Dùng khóa demo công khai trong mã nguồn, chỉ dành cho dữ liệu thử nghiệm.
             </p>
             {encryptedPayload && (
               <div style={{ textAlign: 'left' }}>
                 <span style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>
-                  Bản mã thô sinh ra từ SDK:
+                  Bản mã AES-GCM demo:
                 </span>
                 <div className={styles.codeBlock} style={{ maxHeight: '100px' }}>
                   {encryptedPayload.serialized.slice(0, 160)}...
@@ -128,7 +128,7 @@ export const SupplierSubmissionModal: React.FC<SupplierSubmissionModalProps> = (
                 Nộp hồ sơ lô hàng thành công
               </h3>
               <p className={styles.muted}>
-                Hồ sơ đã được lưu trữ an toàn. Dữ liệu hoạt động nguồn được bảo vệ bằng TideCloak E2EE.
+                Backend đã lưu hồ sơ. Dữ liệu nguồn được mã hóa bằng AES-GCM demo.
               </p>
             </div>
 

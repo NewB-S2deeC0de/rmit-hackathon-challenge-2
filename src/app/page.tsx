@@ -11,15 +11,16 @@ import { DemoAccountKey } from '../lib/auth/authStore';
 
 export default function HomePage() {
   const router = useRouter();
-  const { user, isAuthenticated, loginAsPreset, logout } = useAuth();
+  const { user, isAuthenticated, loginAsPreset, logout, error } = useAuth();
 
-  const handleQuickLogin = (key: DemoAccountKey, targetPath: string) => {
-    loginAsPreset(key);
+  const handleQuickLogin = async (key: DemoAccountKey, targetPath: string) => {
+    if (!await loginAsPreset(key)) return;
     router.push(targetPath);
   };
 
   return (
     <div className={styles.page}>
+      {error && <p role="alert">{error}</p>}
       {/* Navigation Header */}
       <header className={styles.navHeader}>
         <div className={`${styles.container} ${styles.navInner}`}>

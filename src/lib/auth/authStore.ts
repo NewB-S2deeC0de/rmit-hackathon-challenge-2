@@ -109,66 +109,50 @@ export function getAuthSession(user: AuthUser | null): AuthSession | null {
   };
 }
 
-/** Đăng nhập */
-export function login(email: string, role: AppRole = 'supplier', name?: string, company?: string): AuthUser {
-  const user: AuthUser = {
-    id: `usr_${Date.now()}`,
-    email,
-    name: name || email.split('@')[0],
-    company: company || (role === 'supplier' ? 'Nhà cung cấp' : 'Bên mua'),
-    role,
-    token: `tide_token_${role}_${Date.now()}`,
-    createdAt: new Date().toISOString()
-  };
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-    window.dispatchEvent(new Event('auth_change'));
-  }
-  return user;
+// Demo identities are selected by the server; localStorage is display data only.
+const actorIds: Record<DemoAccountKey, string> = {
+  supplier: 'supplier-a', supplier2: 'supplier-b', buyer: 'buyer', admin: 'admin-a'
+};
+function publish(user: AuthUser | null) {
+  if (typeof window === 'undefined') return;
+  if (user) localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+  else localStorage.removeItem(STORAGE_KEY);
+  window.dispatchEvent(new Event('auth_change'));
 }
-
-/** Đăng ký tài khoản mới */
-export function register(payload: RegisterPayload): AuthUser {
-  const user: AuthUser = {
-    id: `usr_${Date.now()}`,
-    email: payload.email,
-    name: payload.name,
-    company: payload.company,
-    role: payload.role,
-    token: `tide_token_${payload.role}_${Date.now()}`,
-    createdAt: new Date().toISOString()
-  };
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-    window.dispatchEvent(new Event('auth_change'));
-  }
-  return user;
+async function sessionRequest(method: string, id?: string) {
+  const response = await fetch('/api/demo/session', {
+    method, credentials: 'same-origin', cache: 'no-store',
+    headers: { 'Content-Type': 'application/json' },
+    ...(id ? { body: JSON.stringify({ id }) } : {})
+  });
+  const body = await response.json();
+  if (!response.ok) throw new Error(body.error?.message || `HTTP ${response.status}`);
+  return body;
 }
-
-/** Đăng nhập nhanh bằng tài khoản mẫu cơ bản */
-export function loginDemo(role: AppRole): AuthUser {
-  const user = DEMO_USERS[role];
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-    window.dispatchEvent(new Event('auth_change'));
-  }
-  return user;
+export async function readServerUser(): Promise<AuthUser | null> {
+  const { actor } = await sessionRequest('GET');
+  const key = (Object.keys(actorIds) as DemoAccountKey[]).find(key => actorIds[key] === actor?.id);
+  return key ? DEMO_ACCOUNTS[key] : null;
 }
-
-/** Đăng nhập nhanh theo kịch bản mẫu (Supplier A, Supplier B, Buyer, Admin QEA) */
-export function loginAsPreset(key: DemoAccountKey): AuthUser {
+export async function loginAsPreset(key: DemoAccountKey): Promise<AuthUser> {
+  await sessionRequest('POST', actorIds[key]);
   const account = DEMO_ACCOUNTS[key];
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(account));
-    window.dispatchEvent(new Event('auth_change'));
-  }
+  publish(account);
   return account;
 }
-
-/** Đăng xuất */
-export function logout(): void {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem(STORAGE_KEY);
-    window.dispatchEvent(new Event('auth_change'));
-  }
+export async function loginDemo(role: AppRole): Promise<AuthUser> {
+  return loginAsPreset(role);
+}
+export async function login(email: string, role: AppRole = 'supplier', _name?: string, _company?: string): Promise<AuthUser> {
+  const key = (Object.keys(DEMO_ACCOUNTS) as DemoAccountKey[]).find(key =>
+    DEMO_ACCOUNTS[key].email === email.trim() && DEMO_ACCOUNTS[key].role === role);
+  if (!key) throw new Error('Bản demo chỉ hỗ trợ tài khoản mẫu. Vui lòng chọn tài khoản demo.');
+  return loginAsPreset(key);
+}
+export async function register(_payload: RegisterPayload): Promise<AuthUser> {
+  throw new Error('Backend chưa hỗ trợ đăng ký. Vui lòng dùng tài khoản demo.');
+}
+export async function logout(): Promise<void> {
+  await sessionRequest('DELETE');
+  publish(null);
 }

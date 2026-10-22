@@ -20,9 +20,9 @@ This repository implements the [consolidated MVP v1 specification](Giải%20Phá
 ## Quick Start & Verification
 
 ### 1. Requirements
-* Node.js 24 LTS (`.nvmrc` included)
+* Node.js >=20.9.0 (`.nvmrc` selects Node 22)
 * npm 10+
-* Docker (for local TideCloak container)
+* Docker (optional, for the separate local TideCloak container)
 
 ### 2. Setup and Run Local Prototype
 ```bash
@@ -39,7 +39,7 @@ Open **`http://localhost:3000`** in your browser.
 
 ### 3. Run Checks & Automated Tests
 ```bash
-# Run unit & contract test suite (12 tests)
+# Run unit, contract and frontend/backend integration tests
 npm test
 
 # Run TypeScript typecheck
@@ -49,25 +49,34 @@ npm run typecheck
 npm run build
 ```
 
-## Interactive Prototype Walkthrough
+## Frontend → Backend walkthrough
 
-1. **Sign in as Supplier A:**
-   * Select **Supplier A** in the workspace.
-   * Click **Load DEMO-001** to fill illustrative inputs (1,000 units, 1,200 kWh electricity, 500 kg material, 800 tonne-km transport, 20 kg waste).
-   * Note the real-time calculation: **1,690 kg CO₂e / batch** and **1.69 kg CO₂e / product**.
-   * Note the disclosure preview cautioning that publishing total and per-product values allows mathematical derivation of batch quantity.
-   * Click **Encrypt & submit**. Copy the generated Record ID.
-2. **Switch to Buyer:**
-   * Select **Buyer** in the persona switcher.
-   * Scroll to **Public Reports** to view the newly published summary.
-   * Notice that private inputs (electricity, materials, transport, waste, evidence) and `supplierId` are completely hidden.
-3. **Cross-Supplier Isolation:**
-   * Switch to **Supplier B**. Paste Supplier A's Record ID into **Open an owned batch**.
-   * Observe that the server returns `404 Not Found` to prevent confirming existence to unauthorized callers.
-   * Switch back to **Supplier A** and open the batch: the browser decrypts and reveals the private operational data.
-4. **Simulated Quorum Enclave Approval (QEA):**
-   * Switch to **Admin A** and click **Propose self-grant**. Status remains `pending` and inactive after one approval.
-   * Switch to **Admin B** or **Admin C** and click **Approve pending grant**. Status transitions to `committed`, demonstrating the 2-of-3 admin quorum.
+1. Run `npm run setup:demo`, then restart `npm run dev`. The demo needs
+   `SCOPEZERO_DEMO_MODE=1` and `SCOPEZERO_DEMO_SECRET` in `.env.local`.
+   The setup command preserves an existing configuration.
+2. Open `/auth` and choose **Supplier A** from the demo accounts. Login creates
+   an HTTP-only server session through `POST /api/demo/session`. Existing
+   localStorage accounts alone no longer authenticate API requests.
+3. Open `/supplier`, fill the demo, calculate PCF and confirm submission.
+   The browser encrypts private inputs with the existing **AES-GCM demo adapter**,
+   then sends `POST /api/batches`. A `201` response confirms storage in
+   `storage/batches.json`; duplicate batch IDs for the same Supplier return `409`.
+4. Open the submitted-batch tab and decrypt. The UI first fetches the ciphertext
+   from `GET /api/batches/:id/encrypted`, so backend ownership checks run before
+   browser decryption. The tab lists batches submitted during the current page
+   session; reloading clears that UI list, but server records remain saved.
+5. Switch to **Buyer** and open `/buyer`. It defaults to the real public API,
+   `GET /api/batches/public`. Click reload to fetch later submissions. Public
+   responses contain only record ID, creation time and public summary.
+6. Backend access checks return `403` for Buyer private reads and `404` for
+   another Supplier. The integration test covers these cases, persistence,
+   duplicate rejection and owner decryption using the actual route handlers.
+
+This is local demo authentication, not password authentication or TideCloak
+login. Manual login accepts only listed demo emails; account registration is
+not implemented by the backend and now reports that limitation. The demo
+AES-GCM key is visible in source and must not be used for real supplier data.
+No TideCloak container is required for this local demo flow.
 
 ## TideCloak Integration Status
 

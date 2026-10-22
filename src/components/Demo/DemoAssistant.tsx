@@ -63,7 +63,7 @@ const DEMO_STEPS: DemoStep[] = [
 
 export function DemoAssistant() {
   const router = useRouter();
-  const { user, loginAsPreset } = useAuth();
+  const { user, loginAsPreset, error } = useAuth();
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
   const [testApiStatus, setTestApiStatus] = useState<string | null>(null);
@@ -75,19 +75,15 @@ export function DemoAssistant() {
     setIsExpanded(true);
   };
 
-  const handleApplyRoleAndNavigate = (step: DemoStep) => {
-    loginAsPreset(step.recommendedRole);
+  const handleApplyRoleAndNavigate = async (step: DemoStep) => {
+    if (!await loginAsPreset(step.recommendedRole)) return;
     router.push(step.recommendedPath);
   };
 
   const handleTestUnauthorizedAccess = async () => {
     setTestApiStatus('Đang gửi yêu cầu vi phạm bảo mật...');
     try {
-      const res = await fetch('/api/batches/demo-001/encrypted', {
-        headers: {
-          'Authorization': 'Bearer ' + (user?.token || 'unauthorized_token')
-        }
-      });
+      const res = await fetch('/api/batches/demo-001/encrypted', { credentials: 'same-origin' });
       if (res.status === 403 || res.status === 401) {
         setTestApiStatus(`Bảo mật thành công: Máy chủ từ chối với HTTP ${res.status} (ACCESS_DENIED) — Zero Leakage!`);
       } else if (res.status === 404) {
@@ -96,12 +92,13 @@ export function DemoAssistant() {
         setTestApiStatus(`Mã phản hồi: HTTP ${res.status}`);
       }
     } catch {
-      setTestApiStatus('Bảo mật thành công: Yêu cầu bị chặn tại cổng API.');
+      setTestApiStatus('Không kết nối được backend; chưa kiểm chứng quyền truy cập.');
     }
   };
 
   return (
     <aside className={styles.demoBar} aria-label="Trợ lý Kịch bản Demo 2 Phút">
+      {error && <p role="alert">{error}</p>}
       <div className={styles.demoBarInner}>
         <div className={styles.titleArea}>
           <span className={styles.badge}>
@@ -169,8 +166,8 @@ export function DemoAssistant() {
                   <button
                     type="button"
                     className={styles.actionBtn}
-                    onClick={() => {
-                      loginAsPreset('supplier');
+                    onClick={async () => {
+                      if (!await loginAsPreset('supplier')) return;
                       router.push('/supplier');
                     }}
                   >

@@ -1,7 +1,7 @@
 // src/app/supplier/page.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from '../../components/Supplier/SupplierStyles.module.css';
 import {
   SupplierBatchForm,
@@ -28,12 +28,15 @@ import {
 // Import các engine logic PCF và adapter mock từ src/lib và src/mocks
 import { parseBatchForm } from '../../lib/pcf/validate';
 import { calculatePCF } from '../../lib/pcf/calculate';
-import { mockBatchCrypto, mockBatchApi, mockSupplierFormPresets } from '../../mocks/fixtures';
+import { mockSupplierFormPresets } from '../../mocks/fixtures';
 import { EncryptedPayload, CreateBatchResponse } from '../../types';
 
-// Sử dụng các adapter đã chuẩn hóa
-const defaultCryptoAdapter = mockBatchCrypto;
-const defaultBatchApi = mockBatchApi;
+import { DemoBatchCrypto } from '../../lib/demo/crypto';
+import { batchApi } from '../../lib/api/batches';
+
+// API backend và mã hóa demo tại trình duyệt.
+const defaultCryptoAdapter = new DemoBatchCrypto();
+const defaultBatchApi = batchApi;
 
 const initialEmptyValues: BatchFormValues = {
   batchId: '',
@@ -72,6 +75,21 @@ export default function SupplierPage() {
 
   // Danh sách các lô hàng đã nộp trong phiên làm việc để kiểm chứng giải mã
   const [submittedBatches, setSubmittedBatches] = useState<DecryptableBatchItem[]>([]);
+
+  const accountVersion = useRef(0);
+  useEffect(() => {
+    accountVersion.current++;
+    setSubmittedBatches([]);
+    setSubmissionStage('idle');
+    setEncryptedPayload(null);
+    setSubmissionResponse(null);
+    setActiveTab('form');
+    setFormValues(initialEmptyValues);
+    setValidatedInput(null);
+    setPcfResult(null);
+    setErrors({});
+    return () => { accountVersion.current++; };
+  }, [user?.id]);
 
   // 1. Thay đổi giá trị trường nhập liệu
   const handleFieldChange = (field: keyof BatchFormValues, value: string) => {
@@ -135,7 +153,9 @@ export default function SupplierPage() {
 
   // 5. Xác nhận nộp & Kích hoạt luồng mã hóa TideCloak
   const handleConfirmAndSubmit = async () => {
-    if (!validatedInput || !pcfResult) return;
+    if (!validatedInput || !pcfResult || !user) return;
+    const version = accountVersion.current;
+    const isCurrentAccount = () => version === accountVersion.current;
 
     setSubmissionStage('preparing');
     setErrorMessage(null);
@@ -155,19 +175,23 @@ export default function SupplierPage() {
       setSubmissionStage('encrypting');
       await new Promise((r) => setTimeout(r, 600)); // Hiệu ứng trực quan chuyển bước
 
+      if (!isCurrentAccount()) return;
       const encrypted = await defaultCryptoAdapter.encryptBatch(privatePayload);
+      if (!isCurrentAccount()) return;
       setEncryptedPayload(encrypted);
 
       // Bước C: Nộp lên API
       setSubmissionStage('submitting');
       await new Promise((r) => setTimeout(r, 600));
 
+      if (!isCurrentAccount()) return;
       const response = await defaultBatchApi.submitBatch({
         schemaVersion: 1,
         publicSummary,
         encryptedInput: encrypted
       });
 
+      if (!isCurrentAccount()) return;
       // Bước D: Thành công
       setSubmissionResponse(response);
       setSubmissionStage('success');
@@ -183,6 +207,7 @@ export default function SupplierPage() {
       };
       setSubmittedBatches((prev) => [newBatchItem, ...prev]);
     } catch (err: unknown) {
+      if (!isCurrentAccount()) return;
       // XỬ LÝ LỖI ĐẶC BIỆT: HTTP 409 CONFLICT (Trùng mã lô)
       // Giữ nguyên 100% dữ liệu biểu mẫu để người dùng không bị mất công nhập
       const isConflict =
@@ -217,7 +242,7 @@ export default function SupplierPage() {
               {user ? `${user.company}` : 'Tài khoản'}
             </a>
           </nav>
-          <span className={styles.securityBadge}>TideCloak E2EE</span>
+          <span className={styles.securityBadge}>AES-GCM demo</span>
         </header>
 
         <DemoAssistant />
@@ -230,7 +255,7 @@ export default function SupplierPage() {
 
         <footer className={styles.footer}>
           <span>ScopeZero · Supplier workspace</span>
-          <span>Bảo mật dữ liệu bằng TideCloak E2EE</span>
+          <span>Bảo mật dữ liệu bằng AES-GCM demo</span>
         </footer>
       </div>
     );
@@ -255,7 +280,7 @@ export default function SupplierPage() {
             {user ? `${user.company}` : 'Tài khoản'}
           </a>
         </nav>
-        <span className={styles.securityBadge}>TideCloak E2EE</span>
+        <span className={styles.securityBadge}>AES-GCM demo</span>
       </header>
 
       {/* Interactive 2-Minute Demo Assistant Bar */}
@@ -295,7 +320,7 @@ export default function SupplierPage() {
           <div>
             <span className={styles.contextLabel}>Tài khoản</span>
             <strong>{user?.company || 'Supplier (Company A)'}</strong>
-            <span className={styles.muted}>Xác thực TideCloak Active</span>
+            <span className={styles.muted}>Phiên demo trên backend</span>
           </div>
           <div>
             <span className={styles.contextLabel}>Phương pháp</span>
@@ -305,7 +330,7 @@ export default function SupplierPage() {
           <div>
             <span className={styles.contextLabel}>Bảo vệ</span>
             <strong>Mã hóa đầu cuối E2EE</strong>
-            <span className={styles.muted}>Thẻ _tide_supplier_internal</span>
+            <span className={styles.muted}>Mã hóa demo tại trình duyệt</span>
           </div>
         </div>
 
@@ -370,6 +395,7 @@ export default function SupplierPage() {
           <SupplierBatchDecryptionView
             batches={submittedBatches}
             cryptoAdapter={defaultCryptoAdapter}
+            apiClient={defaultBatchApi}
             onBackToForm={() => setActiveTab('form')}
           />
         )}
@@ -377,7 +403,7 @@ export default function SupplierPage() {
         {/* Footer (Identical to Buyer Portal) */}
         <footer className={styles.footer}>
           <span>ScopeZero · Supplier workspace</span>
-          <span>Bảo mật dữ liệu bằng TideCloak E2EE</span>
+          <span>Bảo mật dữ liệu bằng AES-GCM demo</span>
         </footer>
       </main>
 

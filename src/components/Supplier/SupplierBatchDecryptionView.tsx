@@ -4,7 +4,8 @@ import styles from './SupplierStyles.module.css';
 import {
   EncryptedPayload,
   PrivateBatchPayload,
-  BatchCrypto
+  BatchCrypto,
+  BatchApi
 } from '../../types';
 
 export interface DecryptableBatchItem {
@@ -19,6 +20,7 @@ export interface DecryptableBatchItem {
 export interface SupplierBatchDecryptionViewProps {
   batches: DecryptableBatchItem[];
   cryptoAdapter: BatchCrypto;
+  apiClient: BatchApi;
   onBackToForm: () => void;
 }
 
@@ -35,6 +37,7 @@ const dateFormat = new Intl.DateTimeFormat('vi-VN', {
 export const SupplierBatchDecryptionView: React.FC<SupplierBatchDecryptionViewProps> = ({
   batches,
   cryptoAdapter,
+  apiClient,
   onBackToForm
 }) => {
   const [selectedBatchId, setSelectedBatchId] = useState<string>(
@@ -59,7 +62,8 @@ export const SupplierBatchDecryptionView: React.FC<SupplierBatchDecryptionViewPr
     setDecryptedPayload(null);
 
     try {
-      const payload = await cryptoAdapter.decryptBatch(currentBatch.encryptedInput);
+      const encrypted = await apiClient.getEncryptedBatch(currentBatch.id);
+      const payload = await cryptoAdapter.decryptBatch(encrypted);
       setDecryptedPayload(payload);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Lỗi giải mã';
@@ -90,7 +94,7 @@ export const SupplierBatchDecryptionView: React.FC<SupplierBatchDecryptionViewPr
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'ACCESS_DENIED';
       setErrorStatus(
-        `[Bảo mật TideCloak] Từ chối giải mã (${message}): Quyền truy cập bị từ chối do không có thẻ quyền _tide_supplier_internal hoặc vai trò hợp lệ.`
+        `Bản mã đã bị sửa, giải mã thất bại: ${message}. Đây là kiểm thử bản mã, không phải kiểm thử phân quyền.`
       );
     } finally {
       setIsDecrypting(false);
@@ -299,9 +303,9 @@ export const SupplierBatchDecryptionView: React.FC<SupplierBatchDecryptionViewPr
                 className={`${styles.btn} ${styles.btnDanger}`}
                 onClick={handleSimulateUnauthorized}
                 disabled={isDecrypting}
-                title="Mô phỏng truy cập khi không có quyền hợp lệ"
+                title="Kiểm tra giải mã với bản mã đã bị sửa"
               >
-                Thử giải mã trái phép (Kiểm thử)
+                Thử bản mã bị sửa (Kiểm thử)
               </button>
             </div>
 

@@ -2,13 +2,13 @@
 set -e
 
 echo "=== 1. Running Unit Tests in backend/reporting/ (Member 2) ==="
-node --test --experimental-strip-types backend/reporting/calculate.test.ts
+node --import tsx --test backend/reporting/calculate.test.ts
 
 echo "=== 2. Running Unit Tests in src/lib/pcf/ (Member 2) ==="
-node --test --experimental-strip-types src/lib/pcf/calculate.test.ts
+node --import tsx --test src/lib/pcf/calculate.test.ts
 
 echo "=== 3. Running Unit Tests in src/mocks/ (TideCloak Mock & Leak Prevention - Member 3) ==="
-node --test --experimental-strip-types src/mocks/fixtures.test.ts
+node --import tsx --test src/mocks/fixtures.test.ts
 
 echo "=== 4. Running Unit Tests for Buyer Workspace (Member 4) ==="
 node --import tsx --test src/components/Buyer/BuyerWorkspace.test.cjs

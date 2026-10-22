@@ -15,7 +15,7 @@ interface AuthGateProps {
 }
 
 export function AuthGate({ requiredRole, portalName, description }: AuthGateProps) {
-  const { user, loginAsPreset } = useAuth();
+  const { user, loginAsPreset, error } = useAuth();
 
   const handleQuickLogin = (key: DemoAccountKey) => {
     loginAsPreset(key);
@@ -33,6 +33,7 @@ export function AuthGate({ requiredRole, portalName, description }: AuthGateProp
           </svg>
         </div>
 
+        {error && <p role="alert">{error}</p>}
         <h1 className={styles.title}>Yêu cầu đăng nhập</h1>
         <p className={styles.subtitle}>
           Không gian <strong>{portalName}</strong> yêu cầu xác thực tài khoản để đảm bảo tính bảo mật và phân quyền dữ liệu chuỗi cung ứng.
