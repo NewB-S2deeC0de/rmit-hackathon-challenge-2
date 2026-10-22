@@ -20,7 +20,7 @@
 ## 2. Cấu trúc Thư mục Scaffold Chung (Scaffold Folder Structure)
 
 ```text
-├── frontend/               # Giao diện người dùng cho Supplier và Buyer
+├── frontend/               # Giao diện người dùng cho Supplier và Buyer (Placement Reference)
 │   ├── supplier/           # [Member 3] Luồng upload, form tính toán & mã hóa của Supplier
 │   └── buyer/              # [Member 4] Màn hình tra cứu PublicSummary của Buyer & kiểm tra từ chối giải mã
 │
@@ -37,14 +37,14 @@
 ├── demo/                   # [Member 4] Kịch bản chạy thử nghiệm thực tế (run-through) & bằng chứng quan sát
 │
 ├── docs/                   # Tài liệu dự án, quyết định chia sẻ (handoffs) và ghi chú nhóm
-│   └── project-context.md  # File đặc tả bối cảnh và ranh giới bảo mật này
+│   └── project-context.md  # File đặc tả bối cảnh, ranh giới bảo mật và đề xuất scaffold thống nhất
 │
 ├── scripts/                # Các script hỗ trợ phát triển, chạy test và kiểm tra hợp đồng dùng chung
 │
-└── src/                    # Single source of truth cho TypeScript types & re-exports tương thích
+└── src/                    # Single source of truth cho TypeScript types, PCF logic & triển khai app
 ```
 
-> **Lưu ý quan trọng**: Thư mục chỉ chứa placement notes cho tới khi nhóm thống nhất lựa chọn framework UI/Backend. Tuyệt đối không commit credentials hoặc dữ liệu nhà cung cấp thật vào Git.
+> **Lưu ý quan trọng**: Thư mục scaffold chứa placement notes cho tới khi nhóm thống nhất lựa chọn framework UI/Backend. Tuyệt đối không commit credentials hoặc dữ liệu nhà cung cấp thật vào Git.
 
 ---
 
@@ -107,3 +107,45 @@ Dựa trên đề bài *Giải Pháp UNLOCKED Hackathon*:
 3. **Giới hạn môi trường**:
    - QEA bảo vệ chính sách quyền trên TideCloak; không tự bảo vệ được mã nguồn frontend/backend nếu bị can thiệp trực tiếp ở tầng hạ tầng máy chủ.
    - Tránh tiết lộ gián tiếp: Công bố đồng thời `totalKgCO2e` và `perProductKgCO2e` cho phép suy ra `quantity = total / perProduct`. Đây là đánh đổi có chủ đích trong MVP để giữ 2 chỉ số tiêu chuẩn.
+
+---
+
+## 5. Bổ sung Scaffold và Các Quyết định Cần Thống nhất (Proposals for Team Alignment)
+
+> *Phần dưới là đề xuất để cả nhóm xác nhận, chưa phải thông báo stack đã được chốt. Giữ sơ đồ thư mục phía trên làm tham khảo cho đến khi nhóm chọn một cấu trúc triển khai duy nhất.*
+
+### 5.1. Thống nhất Stack và Cấu trúc Triển khai
+* **Đề xuất**: Tiếp tục **Next.js + React + TypeScript** để tận dụng phần Buyer đã viết và khớp với phân công tại thẻ "Chia việc".
+* **Quy ước cấu trúc nếu chọn Next.js**:
+  * Dùng cấu trúc frontend chính thức tại:
+    * `src/app/supplier/**` (Giao diện nhập liệu và tính toán của Supplier)
+    * `src/app/buyer/**` (Giao diện tra cứu và kiểm thử từ chối giải mã của Buyer)
+    * `src/components/**` (Các thành phần UI dùng chung)
+    * `src/types.ts` (Nơi khai báo duy nhất cho toàn bộ types nghiệp vụ)
+  * **Không tạo thêm một frontend React độc lập tại `frontend/**`**.
+  * **Thành viên 1** xác định cách nối các phần `backend/access` và `backend/reporting` với app (qua API routes `src/app/api/**` hoặc import trực tiếp trong server components / lib).
+* **Hành động nhóm**: Cả nhóm cần xác nhận phương án trên hoặc chọn stack khác trước khi cài đặt. Thành viên 1 ghi quyết định có hiệu lực trong `docs/project-context.md` và cập nhật mô tả scaffold cho khớp.
+
+### 5.2. Bổ sung Nền tảng Chạy chung — Thành viên 1 chủ trì
+* Checkout phần Buyer hiện thiếu `package.json`, lockfile, cấu hình TypeScript, root layout/entry và types chung. Chưa kiểm chứng các phần này trên branch riêng của thành viên 1; nếu đã có thì bàn giao branch/commit thay vì tạo lại.
+* **Nếu chọn Next.js**:
+  * Bổ sung dependencies: `next`, `react`, `react-dom`.
+  * Dev dependencies: `typescript`, `@types/node`, `@types/react`, `@types/react-dom`.
+  * Cấu hình: `tsconfig.json`, cấu hình Next.js (`next.config.js` / `next.config.ts`), root layout (`src/app/layout.tsx`) và hỗ trợ CSS Modules.
+  * Phiên bản: `react` và `react-dom` cùng phiên bản chính xác; typings cùng major với React; cả bộ phải tương thích với phiên bản Next.js đã chọn.
+  * Chốt một phiên bản Node (Node 20.x hoặc 22.x LTS) và một package manager (`npm`); commit `package.json` cùng đúng một lockfile (`package-lock.json`).
+  * Có các lệnh: `npm run dev`, `npm run build`, `npm test`, `npm run check` (typecheck) và file `.gitignore` phù hợp.
+  * Các thành viên cài đặt từ lockfile chung bằng lệnh `npm ci`, tuyệt đối không tự chọn phiên bản mới nhất (`latest`).
+  * **Phân công dependency**: Thành viên 3 và 4 cần React/typings để làm UI; thành viên 1 cần khi tích hợp frontend. Thành viên 2 (logic/data) chỉ làm logic TypeScript thuần túy thì không bắt buộc React, nhưng dùng dependency chung khi chạy toàn app.
+
+### 5.3. Thống nhất Hợp đồng và Bàn giao
+* Thẻ hợp đồng đã mô tả **Unified Contract v1**, trong khi phần scaffold ban đầu còn nói API chưa chốt. Cả nhóm cần xác nhận **Hợp đồng v1 là nguồn có hiệu lực duy nhất** hoặc ghi rõ thay đổi; không duy trì các tên trường/hàm khác nhau giữa các branch.
+* **Quy ước chuẩn theo Hợp đồng v1**:
+  * Dùng `batchId`, `factorVersion: "demo-factors-v1"`, `assuranceLevel: "supplier-reported"`.
+  * Hàm API: `submitBatch(request: CreateBatchRequest): Promise<CreateBatchResponse>` và `getPublicBatches(): Promise<ListPublicBatchesResponse>`.
+  * Buyer chỉ đọc `PublicSummary` công khai, không nhận `breakdown` hoặc `private payload`.
+* **Phân định trách nhiệm bàn giao**:
+  * **Thành viên 1**: Bàn giao types chuẩn và API client (`src/lib/api.ts` hoặc tương đương).
+  * **Thành viên 2**: Bàn giao fixture `DEMO-001` với kết quả benchmark $1.690\ \text{kg CO}_2\text{e}$ và $1,69\ \text{kg CO}_2\text{e/sp}$ (`data/sample/demoBatch.ts`), bộ hệ số `factors.ts`, logic `calculate.ts`, và validation `validate.ts` (21 unit tests đã đạt 100%).
+  * **Thành viên 3 và 4**: Import chung từ `src/types.ts`, không sao chép lại types.
+* **Xác thực bảo mật**: Thống nhất thêm các mục bảo mật đã nêu ở scaffold: điểm mã hóa, định dạng bản mã và quyền đọc/giải mã. Các khả năng SDK TideCloak chưa kiểm chứng trong thực tế phải ghi rõ là **điều kiện cần xác minh (acceptance criteria)**, không xem như đã hoàn thành.

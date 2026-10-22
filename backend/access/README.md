@@ -5,7 +5,18 @@
 
 ---
 
-## 1. Trách nhiệm & Phạm vi công việc
+## 1. Vị trí Triển khai & Tích hợp vào App (Next.js Proposal)
+Theo Mục 5 của `docs/project-context.md`:
+* Nếu nhóm chọn Next.js: Thành viên 1 xác định cách nối `backend/access` và `backend/reporting` với app.
+  * Các API endpoint được triển khai tại **`src/app/api/**`**:
+    - `POST /api/batches` $\rightarrow$ `src/app/api/batches/route.ts`
+    - `GET /api/batches/public` $\rightarrow$ `src/app/api/batches/public/route.ts`
+    - `GET /api/batches/[id]/encrypted` $\rightarrow$ `src/app/api/batches/[id]/encrypted/route.ts`
+  * Module bảo mật & TideCloak adapter đặt tại `src/lib/tide/` hoặc `backend/access/`.
+
+---
+
+## 2. Trách nhiệm & Phạm vi công việc
 * **Xác thực & Bảo mật API**:
   * Kiểm tra Bearer token từ TideCloak: trích xuất claim `sub` làm `supplierId`, kiểm tra role `supplier`.
   * Không tin tưởng bất kỳ trường ID người dùng nào truyền từ client JSON.
@@ -30,5 +41,5 @@
 
 ---
 
-## 2. Các điểm phụ thuộc từ Member 2 (Logic/Data)
+## 3. Các điểm phụ thuộc từ Member 2 (Logic/Data)
 * Import types từ `src/types.ts` (`CreateBatchRequest`, `CreateBatchResponse`, `ListPublicBatchesResponse`, `PublicBatch`, `StoredBatch`, `EncryptedPayload`, `ApiError`, `ContractError`).

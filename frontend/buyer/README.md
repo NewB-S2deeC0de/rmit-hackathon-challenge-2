@@ -5,7 +5,14 @@
 
 ---
 
-## 1. Trách nhiệm & Phạm vi công việc
+## 1. Vị trí Triển khai Chính thức (Next.js Proposal)
+Theo đề xuất thống nhất tại Mục 5 của `docs/project-context.md`:
+* Nếu nhóm chốt Next.js: Mã nguồn giao diện Buyer được đặt tại **`src/app/buyer/**`** (kế thừa phần Buyer đã viết) và các component tại **`src/components/**`**.
+* Không tạo một app React độc lập tại `frontend/buyer/`. Thư mục này chỉ đóng vai trò tài liệu phân công cho Member 4.
+
+---
+
+## 2. Trách nhiệm & Phạm vi công việc
 * **Bảng báo cáo phát thải cho Buyer**:
   * Đọc dữ liệu từ `GET /api/batches/public` (`ListPublicBatchesResponse`).
   * Hiển thị bảng danh sách các lô hàng: `batchId`, `productName`, `totalKgCO2e`, `perProductKgCO2e`, `factorVersion`, thời gian công bố.
@@ -20,7 +27,7 @@
 
 ---
 
-## 2. Các điểm phụ thuộc từ Member 2 (Logic/Data)
-* Import types từ `src/types.ts` hoặc `backend/reporting/types.ts` (`PublicSummary`, `PublicBatch`, `ListPublicBatchesResponse`).
-* Import hàm định dạng: `formatPCFForDisplay` từ `backend/reporting/calculate.ts`.
+## 3. Các điểm phụ thuộc từ Member 2 (Logic/Data)
+* Import types chuẩn từ `src/types.ts` (`PublicSummary`, `PublicBatch`, `ListPublicBatchesResponse`).
+* Import hàm định dạng: `formatPCFForDisplay` từ `backend/reporting/calculate.ts` (hoặc `src/lib/pcf/calculate.ts`).
 * Sử dụng dữ liệu đối chiếu từ `data/sample/demoBatch.ts` (`handCalculatedBenchmark`).
