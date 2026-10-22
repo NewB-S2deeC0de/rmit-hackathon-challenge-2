@@ -1,151 +1,280 @@
-# Project Context & Scaffold Map — PCF Privacy-Preserving Calculator
+# ScopeZero — Đặc tả Hệ thống Tổng thể & Hợp đồng Kỹ thuật
 
-> **Dự án**: Product Carbon Footprint (PCF) Calculator with Privacy-Preserving TideCloak Integration  
-> **Tài liệu nền tảng**: Cập nhật từ *Giải Pháp UNLOCKED Hackathon(1).docx* và *Unified Contract v1*.  
-> **Mục tiêu**: Supplier minh bạch hóa lượng phát thải carbon (PCF) cho Buyer nhưng bảo vệ tuyệt đối bí mật kinh doanh (định mức nguyên vật liệu, hóa đơn điện năng, chi phí vận tải).
-
----
-
-## 1. Folder Map & Phân công Trách nhiệm (Member Allocation)
-
-| Thành viên | Khu vực chính | Trách nhiệm chính |
-|---|---|---|
-| **Member 1 — Tide/backend** | `backend/access/`<br>`infra/tidecloak/` | Cổng tiếp nhận dữ liệu bảo vệ (protected input path), phân quyền mã hóa/giải mã, cấu hình Quorum Execution Approval (QEA) 3 admin và kiểm chứng hiệu lực quyền. |
-| **Member 2 — logic/data** *(Current Agent)* | `backend/reporting/`<br>`data/sample/` | Dữ liệu đầu vào mẫu, logic tính toán/báo cáo PCF (`calculatePCF`), quản lý phiên bản hệ số `factorVersion: "demo-factors-v1"`, và gán nhãn trung thực `supplier-reported`. |
-| **Member 3 — Supplier** | `frontend/supplier/` | Luồng nhập liệu của Nhà cung cấp (form nhập, kiểm tra hợp lệ), chỉ rõ minh bạch phần nào công bố công khai (`publicSummary`) và phần nào được mã hóa (`encryptedInput`). |
-| **Member 4 — Buyer/demo** | `frontend/buyer/`<br>`demo/` | Màn hình tra cứu báo cáo cho Buyer (chỉ xem summary, nhãn `supplier-reported`), kịch bản demo từ chối truy cập (access-denied), kịch bản QEA admin không tự cấp quyền và bằng chứng quan sát được. |
+> **Bản hợp nhất**: Toàn bộ bảy thẻ trong tài liệu Hackathon Challenge 2 (PCF + TideCloak), cập nhật ngày 22/10/2026.  
+> **Mục tiêu**: Cung cấp tài liệu xuyên suốt để nhóm triển khai, ghép và kiểm tra hệ thống ScopeZero.  
+> **Bản sao lưu nguyên trạng trước hợp nhất**: [Google Docs Backup](https://docs.google.com/document/d/1nX5WkbjnZvaQJO3eWEI0rUUbCZb4E9IhCAZCMIRIjmk/edit?usp=drivesdk)  
+> **Quy ước trạng thái**:
+> - **MVP v1**: Phạm vi triển khai được mô tả trong hợp đồng dữ liệu/API.
+> - **Đề xuất cần xác nhận**: Quyết định nền tảng cần cả nhóm thống nhất.
+> - **Cần kiểm chứng**: Khả năng SDK hoặc bảo đảm an ninh cần chạy thử thực tế.
+> - **Mở rộng**: Tầm nhìn tương lai, không thuộc MVP.
 
 ---
 
-## 2. Cấu trúc Thư mục Scaffold Chung (Scaffold Folder Structure)
+## 1. Bài toán và Giá trị Sản phẩm
 
-```text
-├── frontend/               # Giao diện người dùng cho Supplier và Buyer (Placement Reference)
-│   ├── supplier/           # [Member 3] Luồng upload, form tính toán & mã hóa của Supplier
-│   └── buyer/              # [Member 4] Màn hình tra cứu PublicSummary của Buyer & kiểm tra từ chối giải mã
-│
-├── backend/
-│   ├── access/             # [Member 1] Tích hợp dữ liệu bảo vệ, xác thực token & kiểm soát quyền TideCloak
-│   └── reporting/          # [Member 2] Logic tính toán PCF thuần túy, bộ quy tắc validation & báo cáo
-│
-├── infra/
-│   └── tidecloak/          # [Member 1] Cấu hình cục bộ TideCloak Docker, client realms, và thiết lập QEA 3 admin
-│
-├── data/
-│   └── sample/             # [Member 2] Dữ liệu mẫu (demoBatch DEMO-001, các ca lỗi biên, hệ số demo-factors-v1)
-│
-├── demo/                   # [Member 4] Kịch bản chạy thử nghiệm thực tế (run-through) & bằng chứng quan sát
-│
-├── docs/                   # Tài liệu dự án, quyết định chia sẻ (handoffs) và ghi chú nhóm
-│   └── project-context.md  # File đặc tả bối cảnh, ranh giới bảo mật và đề xuất scaffold thống nhất
-│
-├── scripts/                # Các script hỗ trợ phát triển, chạy test và kiểm tra hợp đồng dùng chung
-│
-└── src/                    # Single source of truth cho TypeScript types, PCF logic & triển khai app
+* **Vấn đề thực tế**: Nhà cung cấp linh kiện (Supplier — doanh nghiệp vừa và nhỏ) muốn chia sẻ dấu chân carbon sản phẩm (PCF) cho bên mua (Buyer — tập đoàn lớn), nhưng lo ngại dữ liệu điện năng, nguyên vật liệu (BOM), sản lượng và logistics làm lộ cơ cấu chi phí hoặc công suất, ảnh hưởng bất lợi đến đàm phán thương mại. Bên mua cần thông tin phát thải để lựa chọn đối tác và báo cáo chuỗi cung ứng.
+* **Giải pháp ScopeZero**: Cho phép chia sẻ kết quả phát thải tổng hợp công khai trong khi bảo vệ tuyệt đối hồ sơ nguồn bằng mã hóa đầu cuối (E2EE) và kiểm soát quyền truy cập phi tập trung qua TideCloak.
+* **Ranh giới trung thực MVP**:
+  * Kết quả hiện tại là **Supplier tự khai báo (`supplier-reported`)**, chưa phải chứng nhận ISO/GHG/PACT độc lập.
+  * Giá trị chứng minh được là: **công bố thông tin được chọn lọc (`PublicSummary`)** và **bảo vệ dữ liệu đầu vào bằng cơ chế truy cập thực tế của TideCloak**.
+  * PCF của một lô chỉ phục vụ đánh giá linh kiện cụ thể, không đồng nhất với toàn bộ phát thải Scope 3 của doanh nghiệp.
+
+---
+
+## 2. Mức độ Phù hợp với Challenge 2
+
+* **Hoạt động hữu ích**: Supplier chia sẻ kết quả phát thải và duy trì hồ sơ riêng tư phục vụ hợp tác lâu dài.
+* **Rào cản niềm tin**: Supplier phải tin rằng người vận hành hệ thống (ScopeZero operator/admin) không thể tự ý đọc lén hoặc tự cấp quyền giải mã hồ sơ kinh doanh cho bên thứ ba.
+* **Thao tác bảo vệ trọng tâm**:
+  1. Giải mã `PrivateBatchPayload` của lô hàng chỉ dành cho chính chủ sở hữu.
+  2. Ngăn chặn một admin TideCloak đơn phương thay đổi chính sách/cấp quyền khi chưa đủ phê duyệt đồng thuận **Quorum Execution Approval (QEA)**.
+  3. Phải chứng minh bằng: **truy cập hợp lệ thành công** và **vượt quyền thất bại thực tế (Access Denied / 403 Forbidden)**, không chỉ bằng giao diện hay việc database chứa bản mã.
+* **Tuyên bố bảo đảm**: Kiểm chứng khả năng bảo vệ quyền giải mã và thay đổi quyền; không tuyên bố đã loại bỏ mọi quyền đơn phương của dev trên toàn bộ hạ tầng backend/frontend.
+
+---
+
+## 3. Chủ thể, Phạm vi MVP và Phần Mở rộng
+
+### 3.1. Ba Chủ thể Chính
+1. **Supplier**: Đơn vị sản xuất, nhập liệu, tính toán PCF tại trình duyệt và mã hóa dữ liệu nhạy cảm.
+2. **Buyer / Công chúng**: Bên mua hoặc khách truy cập xem `PublicSummary` công khai không cần đăng nhập.
+3. **Nền tảng ScopeZero**:
+   - Admin vận hành ứng dụng (App Admin): Vận hành hạ tầng, lưu trữ bản mã.
+   - Admin TideCloak / QEA: Quản trị chính sách quyền, tách biệt hoàn toàn khỏi `AppRole`.
+
+### 3.2. Phạm vi MVP v1 vs Mở rộng
+* **Trong phạm vi MVP v1**:
+  * Một vật liệu minh họa: `demo-material-A`.
+  * Bốn nguồn phát thải: Điện (`electricityKwh`), Vật liệu (`materialKg`), Vận tải đầu vào trực tiếp bằng tấn-km (`inboundTransportTonKm`), Chất thải (`wasteKg`).
+  * Tính PCF đồng bộ trên trình duyệt Supplier trước khi mã hóa.
+  * Bằng chứng dạng văn bản demo (`demo-text`, 1–10.000 ký tự sau trim).
+  * Backend lưu `PublicSummary` và `EncryptedPayload`.
+  * Supplier xem và giải mã lô của chính mình; Buyer chỉ xem summary.
+  * Kiểm chứng cơ chế QEA $\ge 2/3$ admin độc lập.
+* **Không thuộc MVP (Hướng Mở rộng)**:
+  * Tính toán trên bản mã (FHE/MPC tổng quát), kiểm PKI trên dữ liệu đang mã hóa.
+  * Vai trò Reviewer / Kiểm toán viên độc lập; phê duyệt cấp quyền theo từng lần truy cập; thu hồi bản sao đã tải.
+  * Upload hóa đơn PDF/ảnh, chữ ký điện tử bảo vệ summary, cập nhật/xóa lô hàng, phân trang danh sách.
+
+---
+
+## 4. Kiến trúc và Luồng Dữ liệu (End-to-End Flow)
+
+```
+[Supplier Browser]
+  Nhập BatchFormValues
+        ↓ parseBatchForm(values) -> validate(candidate)
+  BatchInput (chuẩn hóa)
+        ↓ calculatePCF(input) [Pure TypeScript]
+  PCFResult { totalKgCO2e, perProductKgCO2e, breakdown, factorVersion, calculationVersion }
+        ↓ createPublicSummary(input, result) & createPrivateBatchPayload(input, result, evidence)
+  PublicSummary + PrivateBatchPayload
+        ↓ TideCloak SDK: encryptBatch(privatePayload)
+  EncryptedPayload { provider: "tidecloak", formatVersion: 1, serialized }
+        ↓ POST /api/batches { schemaVersion: 1, publicSummary, encryptedInput }
+
+[Backend / Storage]
+  Xác minh Bearer Token (sub -> supplierId), kiểm tra schema, chống trùng (supplierId, batchId)
+  Sinh UUID id và createdAt (ISO 8601 UTC)
+  Lưu vào storage/batches.json (StoredBatch)
+
+[Buyer Browser]
+  GET /api/batches/public -> ListPublicBatchesResponse (items: PublicBatch[])
+  (Buyer chỉ nhận PublicSummary; không có breakdown, supplierId hay encryptedInput; không thể giải mã)
 ```
 
-> **Lưu ý quan trọng**: Thư mục scaffold chứa placement notes cho tới khi nhóm thống nhất lựa chọn framework UI/Backend. Tuyệt đối không commit credentials hoặc dữ liệu nhà cung cấp thật vào Git.
+---
+
+## 5. Phân công Nhóm & Bản đồ Scaffold Chung (Section 16 & 18)
+
+> **Cấu trúc tham chiếu thống nhất**: Tiếp tục **Next.js + React + TypeScript** để dùng phần Buyer đã viết và khớp thẻ "Chia việc".  
+> Sơ đồ `frontend/`, `backend/`, `data/` ở scaffold cũ là phân nhóm trách nhiệm, **không triển khai song song như bộ code thứ hai**.
+
+```text
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx         # Root layout chung
+│   │   ├── supplier/          # [Member 3] Giao diện Supplier
+│   │   ├── buyer/             # [Member 4] Giao diện Buyer
+│   │   └── api/               # [Member 1] Next.js API Routes (POST /api/batches, GET public, v.v.)
+│   ├── components/            # UI components (Supplier*, Buyer*)
+│   ├── types.ts               # [Single Source of Truth] Khai báo types duy nhất toàn dự án
+│   ├── lib/
+│   │   ├── pcf/               # [Member 2] Core PCF Engine (calculate, validate, factors, tests)
+│   │   ├── tide/              # [Member 1] AuthAdapter & BatchCrypto (TideCloak SDK integration)
+│   │   └── api/               # [Member 1] API Client (submitBatch, getPublicBatches)
+│   ├── data/
+│   │   └── demoBatch.ts       # [Member 2] Fixture chuẩn DEMO-001 và các ca lỗi biên
+│   └── mocks/
+│       └── fixtures.ts        # Mock fixtures cho UI
+│
+├── storage/                   # File JSON lưu trữ phía server (storage/batches.json không commit)
+├── infra/tidecloak/           # [Member 1] Cấu hình cục bộ TideCloak Docker Compose & QEA 3 admin
+├── docs/                      # Tài liệu dự án (project-context.md)
+├── scripts/                   # Shared development scripts (test-all.sh, check.sh)
+└── demo/                      # [Member 4] Kịch bản demo và bằng chứng kiểm chứng
+```
+
+### Bảng phân công trách nhiệm:
+| Thành viên | Nhánh chính | Trách nhiệm chính |
+|---|---|---|
+| **Member 1 — Tide/backend** | `feat/tide-backend` | Scaffold/dependency/lockfile chung, API routes, repository (`storage/batches.json`), `AuthAdapter`, `BatchCrypto`, cấu hình TideCloak/QEA 3 admin. |
+| **Member 2 — logic/data** *(Current Agent)* | `feat/pcf-data` | `src/types.ts`, `src/lib/pcf/**` (`calculatePCF`, `validate`, `factors`), `src/data/demoBatch.ts`, bàn giao fixture DEMO-001 (1690 / 1.69), 21 unit tests pass 100%. |
+| **Member 3 — Supplier** | `feat/supplier-ui` | Form nhập liệu, điền mẫu, lỗi theo path, công bố dữ liệu rõ ràng, luồng parse → calculate → tạo payload → encrypt → submit; giữ form khi lỗi. |
+| **Member 4 — Buyer/demo** | `feat/buyer-ui` | Danh sách/chi tiết `PublicSummary`, tìm kiếm, tải lại, hiển thị "Supplier tự khai báo", kịch bản access-denied; phối hợp chuẩn bị demo ở giai đoạn sau. |
 
 ---
 
-## 3. Quyết định Dùng chung & Điểm Bàn giao (Shared Decisions & Handoffs)
+## 6. Hợp đồng Kiểu Dữ liệu Duy nhất (`src/types.ts`)
 
-Trước khi ghép nối các module, cả nhóm tuân thủ hợp đồng kỹ thuật thống nhất:
+```typescript
+export type MaterialType = "demo-material-A";
+export type AssuranceLevel = "supplier-reported";
+export type AppRole = "supplier" | "buyer";
 
-### 3.1. Phân loại Trường Dữ liệu Bảo vệ (Protected Fields) vs Công bố (Public Fields)
-* **Các trường được bảo vệ (Private/Protected — Mã hóa E2EE trước khi rời client Supplier)**:
-  * `electricityKwh`: Lượng điện tiêu thụ (tiết lộ quy mô và hiệu suất máy móc).
-  * `materialKg`: Khối lượng vật liệu (tiết lộ công thức sản xuất / BOM).
-  * `inboundTransportTonKm`: Chi tiết cung đường vận chuyển và logistics.
-  * `wasteKg`: Lượng phế phẩm phát sinh trong sản xuất.
-  * `breakdown`: Bảng phân rã chi tiết từng nguồn phát thải.
-  * `evidence`: Bằng chứng chứng từ (hóa đơn tiền điện, vận đơn, phiếu xuất kho).
-* **Các trường công bố công khai (Public Summary — Buyer và công chúng xem được)**:
-  * `batchId`: Mã lô hàng do Supplier đặt (1–64 ký tự).
-  * `productName`: Tên thương mại sản phẩm.
-  * `totalKgCO2e`: Tổng lượng phát thải của cả lô.
-  * `perProductKgCO2e`: Lượng phát thải trung bình trên 1 đơn vị sản phẩm.
-  * `factorVersion`: Bộ hệ số sử dụng (`demo-factors-v1`).
-  * `calculationVersion`: Phiên bản công thức (`pcf-v1`).
-  * `assuranceLevel`: Luôn là `"supplier-reported"` trong v1.
+export interface BatchFormValues {
+  batchId: string;
+  productName: string;
+  quantity: string;
+  electricityKwh: string;
+  materialType: MaterialType;
+  materialKg: string;
+  inboundTransportTonKm: string;
+  wasteKg: string;
+}
 
-### 3.2. Điểm Mã hóa (Encryption Point)
-* **Client-side Encryption**: Dữ liệu riêng tư được đóng gói thành `PrivateBatchPayload` và gọi `TideCloak.encryptBatch(...)` ngay trên trình duyệt Supplier.
-* Backend chỉ nhận bản mã `EncryptedPayload`:
-  ```typescript
-  export interface EncryptedPayload {
-    provider: "tidecloak";
-    formatVersion: 1;
-    serialized: string; // Bản mã chuỗi hóa từ TideCloak SDK
-  }
-  ```
-* Backend **không bao giờ thấy bản rõ** của input hay bằng chứng; không lưu bản rõ vào database/log.
+export interface BatchInput {
+  schemaVersion: 1;
+  batchId: string;
+  productName: string;
+  quantity: number;              // Số nguyên 1 – 1.000.000.000
+  electricityKwh: number;        // Hữu hạn 0 – 1.000.000.000
+  materialType: MaterialType;    // "demo-material-A"
+  materialKg: number;            // Hữu hạn 0 – 1.000.000.000
+  inboundTransportTonKm: number; // Hữu hạn 0 – 1.000.000.000 (tấn-km)
+  wasteKg: number;               // Hữu hạn 0 – 1.000.000.000
+}
 
-### 3.3. Ma trận Phân quyền Truy cập (Access Control Matrix)
+export interface PCFResult {
+  totalKgCO2e: number;
+  perProductKgCO2e: number;
+  breakdown: {
+    electricityKgCO2e: number;
+    materialsKgCO2e: number;
+    transportKgCO2e: number;
+    wasteKgCO2e: number;
+  };
+  factorVersion: "demo-factors-v1";
+  calculationVersion: "pcf-v1";
+}
 
-| Chủ thể (Actor) | Xem PublicSummary | Đọc bản mã EncryptedPayload | Giải mã PrivateBatchPayload | Đổi quyền / Thêm Policy |
-|---|:---:|:---:|:---:|:---:|
-| **Public / Buyer** | ✅ Có | ❌ Không | ❌ Không (Từ chối truy cập) | ❌ Không |
-| **Supplier (Chủ lô)** | ✅ Có | ✅ Có (Lô của mình) | ✅ Có (Qua khóa E2EE TideCloak) | ❌ Không |
-| **Supplier khác** | ✅ Có | ❌ 404 Not Found (Không lộ ID) | ❌ Không | ❌ Không |
-| **Admin ứng dụng** | ✅ Có | ✅ Chỉ phục vụ backup/lưu trữ | ❌ Không có quyền giải mã mặc định | ❌ Bị khóa bởi QEA |
-| **Admin TideCloak (Đơn lẻ)** | ✅ Có | N/A | ❌ Không tự cấp quyền | ⏳ Đề xuất cần $\ge 2/3$ duyệt |
-| **Hội đồng QEA ($\ge 2/3$ Admin)** | ✅ Có | N/A | ⚠️ Chỉ khi có yêu cầu kiểm toán hợp lệ | ✅ Được phép phê duyệt |
+export interface EvidenceInput {
+  kind: "demo-text";
+  text: string; // 1–10.000 ký tự sau trim
+}
+
+export interface PrivateBatchPayload {
+  schemaVersion: 1;
+  input: BatchInput;
+  result: PCFResult;
+  evidence: EvidenceInput | null;
+}
+
+export interface PublicSummary {
+  batchId: string;
+  productName: string;
+  totalKgCO2e: number;
+  perProductKgCO2e: number;
+  factorVersion: "demo-factors-v1";
+  calculationVersion: "pcf-v1";
+  assuranceLevel: AssuranceLevel; // "supplier-reported"
+}
+
+export interface EncryptedPayload {
+  provider: "tidecloak";
+  formatVersion: 1;
+  serialized: string; // Tối đa 200.000 ký tự
+}
+
+export interface CreateBatchRequest {
+  schemaVersion: 1;
+  publicSummary: PublicSummary;
+  encryptedInput: EncryptedPayload;
+}
+
+export interface StoredBatch {
+  id: string;         // UUID do server sinh
+  supplierId: string; // Claim "sub" từ token đã xác minh
+  createdAt: string;  // ISO 8601 UTC do server tạo
+  schemaVersion: 1;
+  publicSummary: PublicSummary;
+  encryptedInput: EncryptedPayload;
+}
+
+export interface PublicBatch {
+  id: string;
+  createdAt: string;
+  publicSummary: PublicSummary;
+}
+
+export interface CreateBatchResponse {
+  id: string;
+  createdAt: string;
+}
+
+export interface ListPublicBatchesResponse {
+  items: PublicBatch[];
+}
+```
 
 ---
 
-## 4. Giới hạn Bảo mật & Tuyên bố Trung thực (Honesty Notes)
+## 7. Quy tắc Xác thực & Hàm Tính toán PCF
 
-Dựa trên đề bài *Giải Pháp UNLOCKED Hackathon*:
-1. **Dữ liệu do Supplier tự khai báo (`supplier-reported`)**:
-   - Phép tính chạy tại máy Supplier trên số liệu tự nhập. Bản MVP chứng minh việc bảo vệ tính bí mật của số liệu (Confidentiality), nhưng **chưa ngăn chặn được trường hợp Supplier cố tình gian lận số liệu đầu vào**.
-   - Không sinh nhãn "Verified" hay "Audited" khi chưa có kiểm toán độc lập.
-2. **Cơ chế QEA (Quorum Execution Approval)**:
-   - Cấu hình 3 tài khoản admin TideCloak độc lập với ngưỡng phê duyệt đồng thuận là 2 ($M=2, N=3$).
-   - Một admin đơn lẻ khi tự tạo policy cấp quyền giải mã thì thay đổi sẽ rơi vào trạng thái `PENDING` và không có hiệu lực thực tế.
-   - Demo phải chứng minh cả **hiệu lực thực thi bị từ chối**, không chỉ đơn thuần là hiển thị chữ "Pending" trên giao diện.
-3. **Giới hạn môi trường**:
-   - QEA bảo vệ chính sách quyền trên TideCloak; không tự bảo vệ được mã nguồn frontend/backend nếu bị can thiệp trực tiếp ở tầng hạ tầng máy chủ.
-   - Tránh tiết lộ gián tiếp: Công bố đồng thời `totalKgCO2e` và `perProductKgCO2e` cho phép suy ra `quantity = total / perProduct`. Đây là đánh đổi có chủ đích trong MVP để giữ 2 chỉ số tiêu chuẩn.
+### 7.1. Bảng quy tắc xác thực (`src/lib/pcf/validate.ts`)
+* `validate(input: unknown)`: Nhận `unknown`, kiểm tra chặt chẽ type runtime, không ép kiểu thô:
+  * `batchId`: 1–64 ký tự sau trim, regex `/^[A-Za-z0-9_-]{1,64}$/`.
+  * `productName`: 1–120 ký tự sau trim.
+  * `quantity`: Số nguyên $1 \le q \le 10^9$.
+  * Các trường số: Số thực hữu hạn $0 \le n \le 10^9$.
+  * `materialType`: `"demo-material-A"`.
+  * `schemaVersion`: Bắt buộc bằng 1.
+  * Từ chối chuỗi ở các ô số (việc parse chuỗi chỉ thuộc `parseBatchForm`).
+* `parseBatchForm(values: BatchFormValues)`: Trim chuỗi, chuyển đổi số; ô số trống là `REQUIRED`, không tự chuyển thành 0; gọi `validate`.
+* `validateEvidence(evidence: unknown)`: Cho phép `null`/`undefined`; nếu có thì `kind: "demo-text"` và `text` 1–10.000 ký tự sau trim.
+
+### 7.2. Logic tính toán (`src/lib/pcf/calculate.ts`)
+* Thuần túy (pure), đồng bộ, tất định, không can thiệp làm tròn số học (chỉ làm tròn hiển thị trên UI).
+* Khi input không hợp lệ: Ném ra `ContractError` (`status: null`, `code: "VALIDATION_ERROR"`, `fields: FieldError[]`).
+* Hệ số minh họa `demo-factors-v1`:
+  * Điện lưới: $0.5\ \text{kg CO}_2\text{e/kWh}$
+  * Vật liệu `demo-material-A`: $2.0\ \text{kg CO}_2\text{e/kg}$
+  * Vận tải đầu vào: $0.1\ \text{kg CO}_2\text{e/tấn}\cdot\text{km}$
+  * Xử lý chất thải: $0.5\ \text{kg CO}_2\text{e/kg}$
+* Công thức:
+  $$\text{totalKgCO2e} = (\text{kwh} \times 0.5) + (\text{matKg} \times 2.0) + (\text{tonKm} \times 0.1) + (\text{wasteKg} \times 0.5)$$
+  $$\text{perProductKgCO2e} = \frac{\text{totalKgCO2e}}{\text{quantity}}$$
+
+### 7.3. Benchmark chuẩn `DEMO-001` (`src/data/demoBatch.ts`)
+* Input: `quantity = 1000`, `electricityKwh = 1200`, `materialKg = 500`, `inboundTransportTonKm = 800`, `wasteKg = 20`.
+* Kết quả phân rã: Điện = 600, Vật liệu = 1000, Vận tải = 80, Chất thải = 10.
+* **Tổng phát thải**: $\mathbf{1.690\ \text{kg CO}_2\text{e}}$.
+* **Mỗi sản phẩm**: $\mathbf{1,69\ \text{kg CO}_2\text{e/sản phẩm}}$.
 
 ---
 
-## 5. Bổ sung Scaffold và Các Quyết định Cần Thống nhất (Proposals for Team Alignment)
+## 8. API Backend & Mô hình Lỗi
 
-> *Phần dưới là đề xuất để cả nhóm xác nhận, chưa phải thông báo stack đã được chốt. Giữ sơ đồ thư mục phía trên làm tham khảo cho đến khi nhóm chọn một cấu trúc triển khai duy nhất.*
+* `POST /api/batches`: Bearer token của Supplier $\rightarrow$ Nhận `CreateBatchRequest` $\rightarrow$ Trùng mã lô trả `409 Conflict`, vượt kích thước trả `413` $\rightarrow$ Trả `201 Created` kèm `{ id, createdAt }`.
+* `GET /api/batches/public`: Công khai không cần auth $\rightarrow$ Trả `ListPublicBatchesResponse` (chỉ gồm `PublicBatch[]`, không có `supplierId` hay `encryptedInput`).
+* `GET /api/batches/:id/encrypted`: Yêu cầu token chính chủ $\rightarrow$ Nếu không thuộc Supplier hoặc không tồn tại trả `404 Not Found`.
+* Lớp lỗi chuẩn: `ContractError` với mã: `UNAUTHENTICATED`, `FORBIDDEN`, `VALIDATION_ERROR`, `NOT_FOUND`, `CONFLICT`, `PAYLOAD_TOO_LARGE`, `INTERNAL_ERROR`, `ACCESS_DENIED`, `CRYPTO_FAILED`, `NETWORK_ERROR`.
 
-### 5.1. Thống nhất Stack và Cấu trúc Triển khai
-* **Đề xuất**: Tiếp tục **Next.js + React + TypeScript** để tận dụng phần Buyer đã viết và khớp với phân công tại thẻ "Chia việc".
-* **Quy ước cấu trúc nếu chọn Next.js**:
-  * Dùng cấu trúc frontend chính thức tại:
-    * `src/app/supplier/**` (Giao diện nhập liệu và tính toán của Supplier)
-    * `src/app/buyer/**` (Giao diện tra cứu và kiểm thử từ chối giải mã của Buyer)
-    * `src/components/**` (Các thành phần UI dùng chung)
-    * `src/types.ts` (Nơi khai báo duy nhất cho toàn bộ types nghiệp vụ)
-  * **Không tạo thêm một frontend React độc lập tại `frontend/**`**.
-  * **Thành viên 1** xác định cách nối các phần `backend/access` và `backend/reporting` với app (qua API routes `src/app/api/**` hoặc import trực tiếp trong server components / lib).
-* **Hành động nhóm**: Cả nhóm cần xác nhận phương án trên hoặc chọn stack khác trước khi cài đặt. Thành viên 1 ghi quyết định có hiệu lực trong `docs/project-context.md` và cập nhật mô tả scaffold cho khớp.
+---
 
-### 5.2. Bổ sung Nền tảng Chạy chung — Thành viên 1 chủ trì
-* Checkout phần Buyer hiện thiếu `package.json`, lockfile, cấu hình TypeScript, root layout/entry và types chung. Chưa kiểm chứng các phần này trên branch riêng của thành viên 1; nếu đã có thì bàn giao branch/commit thay vì tạo lại.
-* **Nếu chọn Next.js**:
-  * Bổ sung dependencies: `next`, `react`, `react-dom`.
-  * Dev dependencies: `typescript`, `@types/node`, `@types/react`, `@types/react-dom`.
-  * Cấu hình: `tsconfig.json`, cấu hình Next.js (`next.config.js` / `next.config.ts`), root layout (`src/app/layout.tsx`) và hỗ trợ CSS Modules.
-  * Phiên bản: `react` và `react-dom` cùng phiên bản chính xác; typings cùng major với React; cả bộ phải tương thích với phiên bản Next.js đã chọn.
-  * Chốt một phiên bản Node (Node 20.x hoặc 22.x LTS) và một package manager (`npm`); commit `package.json` cùng đúng một lockfile (`package-lock.json`).
-  * Có các lệnh: `npm run dev`, `npm run build`, `npm test`, `npm run check` (typecheck) và file `.gitignore` phù hợp.
-  * Các thành viên cài đặt từ lockfile chung bằng lệnh `npm ci`, tuyệt đối không tự chọn phiên bản mới nhất (`latest`).
-  * **Phân công dependency**: Thành viên 3 và 4 cần React/typings để làm UI; thành viên 1 cần khi tích hợp frontend. Thành viên 2 (logic/data) chỉ làm logic TypeScript thuần túy thì không bắt buộc React, nhưng dùng dependency chung khi chạy toàn app.
+## 9. Quorum Execution Approval (QEA) & Bảo đảm An ninh
 
-### 5.3. Thống nhất Hợp đồng và Bàn giao
-* Thẻ hợp đồng đã mô tả **Unified Contract v1**, trong khi phần scaffold ban đầu còn nói API chưa chốt. Cả nhóm cần xác nhận **Hợp đồng v1 là nguồn có hiệu lực duy nhất** hoặc ghi rõ thay đổi; không duy trì các tên trường/hàm khác nhau giữa các branch.
-* **Quy ước chuẩn theo Hợp đồng v1**:
-  * Dùng `batchId`, `factorVersion: "demo-factors-v1"`, `assuranceLevel: "supplier-reported"`.
-  * Hàm API: `submitBatch(request: CreateBatchRequest): Promise<CreateBatchResponse>` và `getPublicBatches(): Promise<ListPublicBatchesResponse>`.
-  * Buyer chỉ đọc `PublicSummary` công khai, không nhận `breakdown` hoặc `private payload`.
-* **Phân định trách nhiệm bàn giao**:
-  * **Thành viên 1**: Bàn giao types chuẩn và API client (`src/lib/api.ts` hoặc tương đương).
-  * **Thành viên 2**: Bàn giao fixture `DEMO-001` với kết quả benchmark $1.690\ \text{kg CO}_2\text{e}$ và $1,69\ \text{kg CO}_2\text{e/sp}$ (`data/sample/demoBatch.ts`), bộ hệ số `factors.ts`, logic `calculate.ts`, và validation `validate.ts` (21 unit tests đã đạt 100%).
-  * **Thành viên 3 và 4**: Import chung từ `src/types.ts`, không sao chép lại types.
-* **Xác thực bảo mật**: Thống nhất thêm các mục bảo mật đã nêu ở scaffold: điểm mã hóa, định dạng bản mã và quyền đọc/giải mã. Các khả năng SDK TideCloak chưa kiểm chứng trong thực tế phải ghi rõ là **điều kiện cần xác minh (acceptance criteria)**, không xem như đã hoàn thành.
+* **Chính sách**: 3 tài khoản admin TideCloak độc lập; chính sách nhạy cảm yêu cầu ngưỡng đồng thuận $\ge 2/3$.
+* **Kiểm chứng thực thi**: Đề xuất cấp quyền giải mã $\rightarrow$ trạng thái `PENDING` $\rightarrow$ thực thi giải mã vẫn bị **từ chối (403)** cho đến khi admin thứ hai phê duyệt.
+* **Giới hạn**: QEA bảo vệ chính sách TideCloak; không tự bảo vệ được mã nguồn nếu dev can thiệp vào máy chủ ứng dụng hoặc trình duyệt.
