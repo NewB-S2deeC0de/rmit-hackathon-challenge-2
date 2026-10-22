@@ -1,142 +1,98 @@
 /**
  * @file src/lib/pcf/calculate.test.ts
- * @description Bộ kiểm thử toàn diện cho module PCF (Hàm tính, Bộ quy tắc kiểm tra, Định dạng hiển thị).
+ * @description Bộ kiểm thử toàn diện cho module PCF theo Unified Contract v1.
  * Sử dụng test runner có sẵn của Node 22 (node:test + node:assert).
  */
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  demoBatch,
+  demoBatchFormValues,
+  demoEvidence,
   handCalculatedBenchmark,
+  invalidBatchExceedsLimit,
+  invalidBatchInvalidFormatId,
   invalidBatchMissingRequired,
   invalidBatchNegativeElectricity,
   invalidBatchNonNumeric,
   invalidBatchUnsupportedMaterial,
   invalidBatchZeroQuantity,
-  validBenchmarkFormValues,
-  validBenchmarkInput,
-  validSimpleBenchmarkInput,
 } from "../../data/demoBatch.ts";
-import type { BatchInput } from "../../types.ts";
+import { ContractError, type BatchInput } from "../../types.ts";
 import {
   calculatePCF,
   createPrivateBatchPayload,
   createPublicSummary,
   formatPCFForDisplay,
 } from "./calculate.ts";
-import {
-  CALCULATION_VERSION,
-  DEMO_EMISSION_FACTORS,
-  FACTOR_SET_ID,
-} from "./factors.ts";
-import {
-  fromSimpleBatchInput,
-  parseBatchForm,
-  validateBatchInput,
-} from "./validate.ts";
+import { CALCULATION_VERSION, FACTOR_VERSION } from "./factors.ts";
+import { parseBatchForm, validate, validateEvidence } from "./validate.ts";
 
-describe("1. Kiểm tra Phép tính PCF Chuẩn (Benchmark Test)", () => {
+describe("1. Kiểm tra Phép tính PCF Chuẩn (Benchmark Test — Mục 5)", () => {
   it("khớp chính xác 100% với phép tính tay 1.690 kg CO2e và 1,69 kg CO2e/sản phẩm", () => {
-    const result = calculatePCF(validBenchmarkInput);
+    const result = calculatePCF(demoBatch);
 
-    // Kiểm tra từng thành phần phân rã (Breakdown)
+    // 1. Phân rã phát thải (Breakdown)
     assert.equal(
       result.breakdown.electricityKgCO2e,
       600,
-      "Điện: 1.200 kWh * 0.5 = 600 kg CO2e"
+      "Điện: 1.200 kWh × 0.5 = 600 kg CO2e"
     );
     assert.equal(
       result.breakdown.materialsKgCO2e,
       1000,
-      "Vật liệu: 500 kg * 2.0 = 1000 kg CO2e"
+      "Vật liệu: 500 kg × 2.0 = 1000 kg CO2e"
     );
     assert.equal(
       result.breakdown.transportKgCO2e,
       80,
-      "Vận tải: 8 tấn * 100 km * 0.1 = 80 kg CO2e"
+      "Vận tải: 800 tấn·km × 0.1 = 80 kg CO2e"
     );
     assert.equal(
       result.breakdown.wasteKgCO2e,
       10,
-      "Chất thải: 20 kg * 0.5 = 10 kg CO2e"
+      "Chất thải: 20 kg × 0.5 = 10 kg CO2e"
     );
 
-    // Kiểm tra tổng và đơn vị
+    // 2. Tổng phát thải và phát thải trên đơn vị sản phẩm
     assert.equal(
       result.totalKgCO2e,
       handCalculatedBenchmark.expectedResult.totalKgCO2e,
-      "Tổng phát thải phải bằng 1690 kg CO2e"
+      "Tổng phát thải: 600 + 1000 + 80 + 10 = 1690 kg CO2e"
     );
     assert.equal(
       result.perProductKgCO2e,
       handCalculatedBenchmark.expectedResult.perProductKgCO2e,
-      "Phát thải mỗi sản phẩm phải bằng 1.69 kg CO2e"
+      "Phát thải mỗi sản phẩm: 1690 / 1000 = 1.69 kg CO2e"
     );
 
-    // Kiểm tra metadata phiên bản
-    assert.equal(result.factorSetId, FACTOR_SET_ID);
+    // 3. Metadata phiên bản
+    assert.equal(result.factorVersion, FACTOR_VERSION);
     assert.equal(result.calculationVersion, CALCULATION_VERSION);
   });
 
   it("cho kết quả tất định (deterministic) qua nhiều lần gọi độc lập", () => {
-    const firstRun = calculatePCF(validBenchmarkInput);
+    const firstRun = calculatePCF(demoBatch);
     for (let i = 0; i < 5; i++) {
-      const run = calculatePCF(validBenchmarkInput);
+      const run = calculatePCF(demoBatch);
       assert.deepEqual(run, firstRun);
     }
   });
-
-  it("tương thích chính xác với định dạng phẳng SimpleBatchInput", () => {
-    const converted = fromSimpleBatchInput(validSimpleBenchmarkInput);
-    const result = calculatePCF(converted);
-
-    assert.equal(result.totalKgCO2e, 1690);
-    assert.equal(result.perProductKgCO2e, 1.69);
-  });
 });
 
-describe("2. Kiểm tra Nhiều Vật liệu & Nhiều Chặng Vận chuyển", () => {
-  it("tính chính xác khi có nhiều vật liệu (thép, nhôm, nhựa) và đường biển", () => {
-    const complexBatch: BatchInput = {
-      schemaVersion: 1,
-      batchCode: "BATCH-COMPLEX-002",
-      productName: "Sản phẩm công nghiệp đa thành phần",
-      quantity: 500,
-      electricityKwh: 2000, // 2000 * 0.5 = 1000
-      materials: [
-        { type: "steel", massKg: 100 }, // 100 * 1.8 = 180
-        { type: "aluminium", massKg: 50 }, // 50 * 8.2 = 410
-        { type: "plastic", massKg: 40 }, // 40 * 2.5 = 100
-      ], // Tổng vật liệu = 180 + 410 + 100 = 690
-      transport: [
-        { mode: "ship", cargoMassKg: 50000, distanceKm: 1000 }, // 50t * 1000km * 0.02 = 1000
-        { mode: "truck", cargoMassKg: 5000, distanceKm: 200 }, // 5t * 200km * 0.1 = 100
-      ], // Tổng vận tải = 1000 + 100 = 1100
-      wasteKg: 50, // 50 * 0.5 = 25
-    };
-
-    const result = calculatePCF(complexBatch);
-
-    assert.equal(result.breakdown.electricityKgCO2e, 1000);
-    assert.equal(result.breakdown.materialsKgCO2e, 690);
-    assert.equal(result.breakdown.transportKgCO2e, 1100);
-    assert.equal(result.breakdown.wasteKgCO2e, 25);
-
-    // Tổng: 1000 + 690 + 1100 + 25 = 2815 kg CO2e
-    assert.equal(result.totalKgCO2e, 2815);
-    // Mỗi sp: 2815 / 500 = 5.63 kg CO2e/sp
-    assert.equal(result.perProductKgCO2e, 5.63);
-  });
-});
-
-describe("3. Kiểm tra Bộ Quy tắc Validation (parseBatchForm & validateBatchInput)", () => {
+describe("2. Kiểm tra Bộ Quy tắc Validation (validate & parseBatchForm)", () => {
   it("chấp nhận form mẫu hợp lệ", () => {
-    const validation = parseBatchForm(validBenchmarkFormValues);
+    const validation = parseBatchForm(demoBatchFormValues);
     assert.equal(validation.ok, true);
     if (validation.ok) {
-      assert.equal(validation.value.batchCode, "BATCH-2026-RMIT-001");
+      assert.equal(validation.value.batchId, "DEMO-001");
+      assert.equal(validation.value.productName, "Demo fastener");
       assert.equal(validation.value.quantity, 1000);
-      assert.equal(validation.value.materials[0].massKg, 500);
+      assert.equal(validation.value.materialType, "demo-material-A");
+      assert.equal(validation.value.materialKg, 500);
+      assert.equal(validation.value.inboundTransportTonKm, 800);
+      assert.equal(validation.value.wasteKg, 20);
     }
   });
 
@@ -145,7 +101,31 @@ describe("3. Kiểm tra Bộ Quy tắc Validation (parseBatchForm & validateBatc
     assert.equal(validation.ok, false);
     if (!validation.ok) {
       const err = validation.errors.find((e) => e.path === "quantity");
-      assert.ok(err, "Phải có lỗi ở trường quantity");
+      assert.ok(err, "Phải có lỗi tại path 'quantity'");
+      assert.equal(err!.code, "OUT_OF_RANGE");
+    }
+  });
+
+  it("từ chối khi quantity không phải số nguyên", () => {
+    const invalidQuantityFloat = {
+      ...demoBatch,
+      quantity: 100.5,
+    };
+    const res = validate(invalidQuantityFloat);
+    assert.equal(res.ok, false);
+    if (!res.ok) {
+      const err = res.errors.find((e) => e.path === "quantity");
+      assert.ok(err);
+      assert.equal(err!.code, "OUT_OF_RANGE");
+    }
+  });
+
+  it("từ chối khi quantity vượt quá giới hạn 1 tỷ", () => {
+    const validation = parseBatchForm(invalidBatchExceedsLimit);
+    assert.equal(validation.ok, false);
+    if (!validation.ok) {
+      const err = validation.errors.find((e) => e.path === "quantity");
+      assert.ok(err);
       assert.equal(err!.code, "OUT_OF_RANGE");
     }
   });
@@ -155,16 +135,16 @@ describe("3. Kiểm tra Bộ Quy tắc Validation (parseBatchForm & validateBatc
     assert.equal(validation.ok, false);
     if (!validation.ok) {
       const err = validation.errors.find((e) => e.path === "electricityKwh");
-      assert.ok(err, "Phải có lỗi ở trường electricityKwh");
+      assert.ok(err, "Phải có lỗi tại path 'electricityKwh'");
       assert.equal(err!.code, "OUT_OF_RANGE");
     }
   });
 
-  it("từ chối khi vật liệu không nằm trong danh mục hỗ trợ", () => {
+  it("từ chối khi vật liệu không phải 'demo-material-A'", () => {
     const validation = parseBatchForm(invalidBatchUnsupportedMaterial);
     assert.equal(validation.ok, false);
     if (!validation.ok) {
-      const err = validation.errors.find((e) => e.path === "materials.0.type");
+      const err = validation.errors.find((e) => e.path === "materialType");
       assert.ok(err, "Phải báo lỗi vật liệu không hỗ trợ");
       assert.equal(err!.code, "UNSUPPORTED_VALUE");
     }
@@ -174,9 +154,29 @@ describe("3. Kiểm tra Bộ Quy tắc Validation (parseBatchForm & validateBatc
     const validation = parseBatchForm(invalidBatchMissingRequired);
     assert.equal(validation.ok, false);
     if (!validation.ok) {
-      assert.ok(validation.errors.some((e) => e.path === "batchCode"));
+      assert.ok(validation.errors.some((e) => e.path === "batchId"));
       assert.ok(validation.errors.some((e) => e.path === "productName"));
       assert.ok(validation.errors.some((e) => e.path === "quantity"));
+      assert.ok(validation.errors.some((e) => e.path === "electricityKwh"));
+      assert.ok(validation.errors.some((e) => e.path === "materialKg"));
+      assert.ok(
+        validation.errors.some((e) => e.path === "inboundTransportTonKm")
+      );
+      assert.ok(validation.errors.some((e) => e.path === "wasteKg"));
+    }
+  });
+
+  it("không tự ý đổi ô số trống thành 0 (quy tắc REQUIRED cho ô trống)", () => {
+    const formWithEmptyWaste = {
+      ...demoBatchFormValues,
+      wasteKg: "   ",
+    };
+    const res = parseBatchForm(formWithEmptyWaste);
+    assert.equal(res.ok, false);
+    if (!res.ok) {
+      const err = res.errors.find((e) => e.path === "wasteKg");
+      assert.ok(err);
+      assert.equal(err!.code, "REQUIRED");
     }
   });
 
@@ -189,54 +189,165 @@ describe("3. Kiểm tra Bộ Quy tắc Validation (parseBatchForm & validateBatc
           (e) => e.path === "quantity" && e.code === "INVALID_NUMBER"
         )
       );
+      assert.ok(
+        validation.errors.some(
+          (e) => e.path === "electricityKwh" && e.code === "INVALID_NUMBER"
+        )
+      );
     }
   });
 
-  it("hàm validateBatchInput hoạt động đúng với đối tượng JSON thô", () => {
-    const validRaw = {
-      batchCode: "BATCH-RAW-001",
-      productName: "Sản phẩm thử nghiệm",
-      quantity: 50,
-      electricityKwh: 100,
-      materialType: "demo-material-A",
-      materialKg: 200,
-      inboundTransportTonKm: 300,
-      wasteKg: 10,
+  it("từ chối mã lô (batchId) chứa ký tự không hợp lệ hoặc khoảng trắng", () => {
+    const validation = parseBatchForm(invalidBatchInvalidFormatId);
+    assert.equal(validation.ok, false);
+    if (!validation.ok) {
+      const err = validation.errors.find((e) => e.path === "batchId");
+      assert.ok(err);
+      assert.equal(err!.code, "INVALID_FORMAT");
+    }
+  });
+
+  it("chấp nhận mã lô (batchId) hợp lệ với chữ, số, gạch ngang, gạch dưới", () => {
+    const validIds = ["LOT-2026_01", "BATCH_A-1", "999", "prod-lot-xyz"];
+    for (const bid of validIds) {
+      const res = parseBatchForm({
+        ...demoBatchFormValues,
+        batchId: bid,
+      });
+      assert.equal(res.ok, true, `Mã lô ${bid} phải hợp lệ`);
+    }
+  });
+
+  it("từ chối tên sản phẩm dài quá 120 ký tự", () => {
+    const longName = "A".repeat(121);
+    const res = parseBatchForm({
+      ...demoBatchFormValues,
+      productName: longName,
+    });
+    assert.equal(res.ok, false);
+    if (!res.ok) {
+      const err = res.errors.find((e) => e.path === "productName");
+      assert.ok(err);
+      assert.equal(err!.code, "OUT_OF_RANGE");
+    }
+  });
+
+  it("validate từ chối khi truyền chuỗi vào trường số (validate nhận unknown không tự ép kiểu chuỗi)", () => {
+    const rawWithStrings = {
+      ...demoBatch,
+      quantity: "1000", // Sai kiểu
     };
-    const res = validateBatchInput(validRaw);
-    assert.equal(res.ok, true);
+    const res = validate(rawWithStrings);
+    assert.equal(res.ok, false);
+    if (!res.ok) {
+      const err = res.errors.find((e) => e.path === "quantity");
+      assert.ok(err);
+      assert.equal(err!.code, "INVALID_NUMBER");
+    }
+  });
+
+  it("validate từ chối schemaVersion khác 1", () => {
+    const badSchema = {
+      ...demoBatch,
+      schemaVersion: 2,
+    };
+    const res = validate(badSchema);
+    assert.equal(res.ok, false);
+    if (!res.ok) {
+      const err = res.errors.find((e) => e.path === "schemaVersion");
+      assert.ok(err);
+      assert.equal(err!.code, "UNSUPPORTED_VALUE");
+    }
   });
 });
 
-describe("4. Kiểm tra PublicSummary, Payload Bảo mật & Định dạng Hiển thị", () => {
-  it("tạo PublicSummary đúng với assuranceLevel là 'supplier-declared'", () => {
-    const pcfResult = calculatePCF(validBenchmarkInput);
-    const summary = createPublicSummary(validBenchmarkInput, pcfResult);
+describe("3. Kiểm tra Ngoại lệ calculatePCF với ContractError", () => {
+  it("ném ContractError với status = null và code = 'VALIDATION_ERROR' khi input không hợp lệ", () => {
+    const invalidInput = {
+      ...demoBatch,
+      quantity: 0,
+    } as BatchInput;
 
-    assert.equal(summary.batchCode, "BATCH-2026-RMIT-001");
+    assert.throws(
+      () => calculatePCF(invalidInput),
+      (err: unknown) => {
+        assert.ok(err instanceof ContractError, "Phải là thể hiện ContractError");
+        assert.equal(err.status, null, "status phải là null");
+        assert.equal(err.code, "VALIDATION_ERROR");
+        assert.ok(err.fields && err.fields.length > 0);
+        return true;
+      }
+    );
+  });
+});
+
+describe("4. Kiểm tra PublicSummary, PrivateBatchPayload & Bằng chứng", () => {
+  it("tạo PublicSummary đúng với assuranceLevel là 'supplier-reported'", () => {
+    const pcfResult = calculatePCF(demoBatch);
+    const summary = createPublicSummary(demoBatch, pcfResult);
+
+    assert.equal(summary.batchId, "DEMO-001");
+    assert.equal(summary.productName, "Demo fastener");
     assert.equal(summary.totalKgCO2e, 1690);
     assert.equal(summary.perProductKgCO2e, 1.69);
-    assert.equal(summary.assuranceLevel, "supplier-declared");
+    assert.equal(summary.factorVersion, "demo-factors-v1");
+    assert.equal(summary.calculationVersion, "pcf-v1");
+    assert.equal(summary.assuranceLevel, "supplier-reported");
+
+    // Đảm bảo không rò rỉ breakdown, supplierId hay encryptedInput
+    assert.equal((summary as any).breakdown, undefined);
+    assert.equal((summary as any).supplierId, undefined);
+    assert.equal((summary as any).encryptedInput, undefined);
   });
 
   it("đóng gói PrivateBatchPayload chứa toàn vẹn dữ liệu nhạy cảm", () => {
-    const pcfResult = calculatePCF(validBenchmarkInput);
+    const pcfResult = calculatePCF(demoBatch);
     const payload = createPrivateBatchPayload(
-      validBenchmarkInput,
+      demoBatch,
       pcfResult,
-      "Chứng từ bảo mật ISO 14064"
+      demoEvidence
     );
 
     assert.equal(payload.schemaVersion, 1);
     assert.equal(payload.input.quantity, 1000);
-    assert.equal(payload.evidenceText, "Chứng từ bảo mật ISO 14064");
+    assert.equal(payload.result.totalKgCO2e, 1690);
+    assert.deepEqual(payload.evidence, demoEvidence);
+  });
+
+  it("kiểm tra hợp lệ bằng chứng (validateEvidence)", () => {
+    // 1. null / undefined hợp lệ
+    assert.equal(validateEvidence(null).ok, true);
+    assert.equal(validateEvidence(undefined).ok, true);
+
+    // 2. demoEvidence hợp lệ
+    const validRes = validateEvidence(demoEvidence);
+    assert.equal(validRes.ok, true);
+
+    // 3. Thiếu text hoặc rỗng
+    const emptyRes = validateEvidence({ kind: "demo-text", text: "   " });
+    assert.equal(emptyRes.ok, false);
+
+    // 4. Sai kind
+    const wrongKind = validateEvidence({ kind: "pdf-invoice", text: "abc" });
+    assert.equal(wrongKind.ok, false);
+
+    // 5. Quá 10.000 ký tự
+    const over10k = validateEvidence({
+      kind: "demo-text",
+      text: "X".repeat(10_001),
+    });
+    assert.equal(over10k.ok, false);
   });
 
   it("định dạng hiển thị formatPCFForDisplay làm tròn 2 chữ số thập phân", () => {
-    const pcfResult = calculatePCF(validBenchmarkInput);
+    const pcfResult = calculatePCF(demoBatch);
     const formatted = formatPCFForDisplay(pcfResult);
 
     assert.match(formatted.total, /1[.,]690[.,]00 kg CO₂e/);
     assert.match(formatted.perUnit, /1[.,]69 kg CO₂e\/sản phẩm/);
+    assert.match(formatted.electricity, /600[.,]00 kg CO₂e/);
+    assert.match(formatted.materials, /1[.,]000[.,]00 kg CO₂e/);
+    assert.match(formatted.transport, /80[.,]00 kg CO₂e/);
+    assert.match(formatted.waste, /10[.,]00 kg CO₂e/);
   });
 });

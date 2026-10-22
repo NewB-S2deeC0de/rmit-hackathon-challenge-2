@@ -1,17 +1,18 @@
 /**
  * @file src/lib/pcf/factors.ts
- * @description Bảng hệ số phát thải mẫu, đơn vị và phiên bản tính toán.
- * LƯU Ý QUAN TRỌNG: Các hệ số này hoàn toàn mang tính chất MINH HỌA cho bản demo kỹ thuật,
- * không phải là hệ số chính thức được kiểm định theo GHG Protocol / ISO 14067.
+ * @description Bảng hệ số phát thải mẫu, đơn vị và phiên bản tính toán — Unified Contract v1.
+ * LƯU Ý QUAN TRỌNG: Các hệ số này mang tính chất MINH HỌA cho bản demo kỹ thuật,
+ * không phải là hệ số chính thức được kiểm định theo GHG Protocol / ISO 14067 / PACT.
  */
 
-import type { MaterialType, TransportMode } from "../../types.ts";
+import type { MaterialType } from "../../types.ts";
 
-export const FACTOR_SET_ID = "demo-factors-v1" as const;
+export const FACTOR_VERSION = "demo-factors-v1" as const;
+export const FACTOR_SET_ID = FACTOR_VERSION; // Alias tương thích
 export const CALCULATION_VERSION = "pcf-v1" as const;
 
 export const DEMO_FACTORS_DISCLAIMER =
-  "Các hệ số trong bộ demo-factors-v1 chỉ phục vụ mục đích kiểm thử code và trình diễn kỹ thuật trong Hackathon; không được xem là số liệu phát thải thực tế." as const;
+  "Các hệ số trong bộ demo-factors-v1 chỉ phục vụ mục đích kiểm thử code và trình diễn kỹ thuật trong Hackathon; không được xem là số liệu phát thải thực tế hoặc chứng nhận ISO/GHG." as const;
 
 export interface FactorDetail {
   readonly value: number;
@@ -20,17 +21,17 @@ export interface FactorDetail {
 }
 
 export interface EmissionFactorSet {
-  readonly factorSetId: typeof FACTOR_SET_ID;
+  readonly factorVersion: typeof FACTOR_VERSION;
   readonly calculationVersion: typeof CALCULATION_VERSION;
   readonly disclaimer: typeof DEMO_FACTORS_DISCLAIMER;
   readonly electricity: FactorDetail;
-  readonly materials: Record<MaterialType, FactorDetail>;
-  readonly transport: Record<TransportMode, FactorDetail>;
+  readonly material: FactorDetail;
+  readonly inboundTransport: FactorDetail;
   readonly waste: FactorDetail;
 }
 
 export const DEMO_EMISSION_FACTORS: EmissionFactorSet = {
-  factorSetId: FACTOR_SET_ID,
+  factorVersion: FACTOR_VERSION,
   calculationVersion: CALCULATION_VERSION,
   disclaimer: DEMO_FACTORS_DISCLAIMER,
 
@@ -41,43 +42,19 @@ export const DEMO_EMISSION_FACTORS: EmissionFactorSet = {
     description: "Hệ số phát thải lưới điện mẫu",
   },
 
-  // Vật liệu (kg CO2e / kg)
-  materials: {
-    "demo-material-A": {
-      value: 2.0,
-      unit: "kg CO2e / kg",
-      description: "Vật liệu mẫu A (chuẩn kiểm thử benchmark)",
-    },
-    steel: {
-      value: 1.8,
-      unit: "kg CO2e / kg",
-      description: "Thép hợp kim minh họa",
-    },
-    aluminium: {
-      value: 8.2,
-      unit: "kg CO2e / kg",
-      description: "Nhôm sơ cấp minh họa",
-    },
-    plastic: {
-      value: 2.5,
-      unit: "kg CO2e / kg",
-      description: "Nhựa polymer minh họa",
-    },
+  // Vật liệu demo-material-A: 2.0 kg CO2e / kg
+  material: {
+    value: 2.0,
+    unit: "kg CO2e / kg",
+    description: "Hệ số phát thải vật liệu demo-material-A",
   },
 
-  // Vận tải: kg CO2e / tấn·km (tấn hàng × km hành trình)
-  // 1 tấn·km = (cargoMassKg / 1000) * distanceKm
-  transport: {
-    truck: {
-      value: 0.1,
-      unit: "kg CO2e / ton·km",
-      description: "Vận chuyển đường bộ bằng xe tải",
-    },
-    ship: {
-      value: 0.02,
-      unit: "kg CO2e / ton·km",
-      description: "Vận chuyển đường biển",
-    },
+  // Vận tải đầu vào: 0.1 kg CO2e / tấn·km (tấn hàng × km hành trình)
+  // Đã tính trực tiếp theo tấn-km (1 tấn = 1.000 kg)
+  inboundTransport: {
+    value: 0.1,
+    unit: "kg CO2e / ton·km",
+    description: "Vận tải đầu vào đường bộ (tấn-km)",
   },
 
   // Xử lý chất thải: 0.5 kg CO2e / kg chất thải
