@@ -113,12 +113,12 @@ export const SupplierSummaryPreview: React.FC<SupplierSummaryPreviewProps> = ({
           <div className={`${styles.columnCard} ${styles.columnPublic}`}>
             <div className={styles.columnHeader}>
               <span className={styles.columnTitle}>
-                <span>🌐</span> Bản tóm tắt công khai
+                Bản tóm tắt công khai
               </span>
               <span className={styles.publicTag}>Bên mua xem được</span>
             </div>
             <p className={styles.columnNote}>
-              Các trường này lưu trữ bản rõ trên hệ thống để chia sẻ cho Bên mua:
+              Lưu trữ bản rõ trên hệ thống cho Bên mua:
             </p>
 
             <dl className={styles.metadata}>
@@ -157,12 +157,12 @@ export const SupplierSummaryPreview: React.FC<SupplierSummaryPreviewProps> = ({
           <div className={`${styles.columnCard} ${styles.columnPrivate}`}>
             <div className={styles.columnHeader}>
               <span className={styles.columnTitle}>
-                <span>🔒</span> Dữ liệu mật (Private Payload)
+                Dữ liệu mật (Private Payload)
               </span>
               <span className={styles.privateTag}>Mã hóa E2EE TideCloak</span>
             </div>
             <p className={styles.columnNote}>
-              Máy chủ backend và Bên mua hoàn toàn không thể giải mã nội dung này:
+              Máy chủ backend và Bên mua không thể giải mã:
             </p>
 
             <dl className={styles.metadata}>
@@ -220,19 +220,19 @@ export const SupplierSummaryPreview: React.FC<SupplierSummaryPreviewProps> = ({
 
         <div className={styles.asideCard}>
           <div className={styles.asideCardTitle}>
-            <span>📋</span> Mức độ bảo đảm
+            Mức độ bảo đảm
           </div>
           <p className={styles.muted}>
-            Hồ sơ sẽ mang nhãn <strong>&ldquo;supplier-reported&rdquo;</strong> (nhà cung cấp tự khai báo). Tuyệt đối không tự ý gán nhãn đã kiểm toán hay bảo đảm độc lập.
+            Hồ sơ mang nhãn <strong>&ldquo;supplier-reported&rdquo;</strong> (tự khai báo, chưa qua kiểm toán độc lập).
           </p>
         </div>
 
         <div className={styles.asideCard}>
           <div className={styles.asideCardTitle}>
-            <span>🔐</span> Thẻ phân quyền TideCloak
+            Thẻ phân quyền TideCloak
           </div>
           <p className={styles.muted} style={{ fontSize: '12px' }}>
-            Bản mã được niêm phong bằng thẻ nội bộ <code>_tide_supplier_internal</code>. Chỉ tài khoản sở hữu hoặc quy trình giải mã được cấp phép mới giải mã được.
+            Niêm phong bằng thẻ nội bộ <code>_tide_supplier_internal</code>. Chỉ tài khoản sở hữu mới giải mã được.
           </p>
         </div>
       </aside>

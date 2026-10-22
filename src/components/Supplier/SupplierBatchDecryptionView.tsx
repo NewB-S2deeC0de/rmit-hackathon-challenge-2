@@ -90,7 +90,7 @@ export const SupplierBatchDecryptionView: React.FC<SupplierBatchDecryptionViewPr
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'ACCESS_DENIED';
       setErrorStatus(
-        `🛡️ [BẢO MẬT TIDECLOAK NGĂN CHẶN THÀNH CÔNG] Từ chối giải mã (${message}): Quyền truy cập bị từ chối do không có thẻ quyền _tide_supplier_internal hoặc vai trò hợp lệ.`
+        `[Bảo mật TideCloak] Từ chối giải mã (${message}): Quyền truy cập bị từ chối do không có thẻ quyền _tide_supplier_internal hoặc vai trò hợp lệ.`
       );
     } finally {
       setIsDecrypting(false);
@@ -100,12 +100,11 @@ export const SupplierBatchDecryptionView: React.FC<SupplierBatchDecryptionViewPr
   if (batches.length === 0) {
     return (
       <div className={styles.mainPanel} style={{ textAlign: 'center', padding: '48px 24px' }}>
-        <div style={{ fontSize: '32px', marginBottom: '12px' }}>📭</div>
-        <h3 style={{ margin: '0 0 8px 0', color: 'var(--text)', fontSize: '18px' }}>
+        <h3 style={{ margin: '0 0 8px 0', color: 'var(--text)', fontSize: '17px' }}>
           Chưa có lô hàng nào được nộp trong phiên
         </h3>
-        <p className={styles.muted} style={{ maxWidth: '460px', margin: '0 auto 24px auto' }}>
-          Sau khi hoàn thành khai báo và gửi lô hàng lên hệ thống, bạn có thể kiểm chứng tính toàn vẹn và khả năng giải mã E2EE tại đây.
+        <p className={styles.muted} style={{ maxWidth: '420px', margin: '0 auto 20px auto' }}>
+          Sau khi gửi lô hàng, bạn có thể kiểm chứng bản mã E2EE và tính năng giải mã tại đây.
         </p>
         <button type="button" className={`${styles.btn} ${styles.btnPrimary}`} onClick={onBackToForm}>
           + Khai báo lô hàng mới
@@ -253,7 +252,7 @@ export const SupplierBatchDecryptionView: React.FC<SupplierBatchDecryptionViewPr
           <>
             <div className={styles.asideCard}>
               <div className={styles.asideCardTitle}>
-                <span>📦</span> Lô được chọn: {currentBatch.batchId}
+                Lô được chọn: {currentBatch.batchId}
               </div>
               <dl className={styles.metadata}>
                 <div>
@@ -275,7 +274,7 @@ export const SupplierBatchDecryptionView: React.FC<SupplierBatchDecryptionViewPr
 
             <div className={styles.asideCard}>
               <div className={styles.asideCardTitle}>
-                <span>🔐</span> Bản mã thô lưu trên server
+                Bản mã thô lưu trên server
               </div>
               <p className={styles.muted} style={{ fontSize: '12px' }}>
                 Cơ sở dữ liệu chỉ nhìn thấy chuỗi an toàn sau:
@@ -292,7 +291,7 @@ export const SupplierBatchDecryptionView: React.FC<SupplierBatchDecryptionViewPr
                 onClick={handleDecryptOwner}
                 disabled={isDecrypting}
               >
-                {isDecrypting ? 'Đang giải mã...' : '🔑 Giải mã bằng khóa Supplier'}
+                {isDecrypting ? 'Đang giải mã...' : 'Giải mã bằng khóa Supplier'}
               </button>
 
               <button
@@ -302,7 +301,7 @@ export const SupplierBatchDecryptionView: React.FC<SupplierBatchDecryptionViewPr
                 disabled={isDecrypting}
                 title="Mô phỏng truy cập khi không có quyền hợp lệ"
               >
-                🛡️ Thử giải mã trái phép
+                Thử giải mã trái phép (Kiểm thử)
               </button>
             </div>
 

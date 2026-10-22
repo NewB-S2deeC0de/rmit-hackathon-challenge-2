@@ -64,8 +64,9 @@ export function BuyerWorkspace({ source, initialBatches, initialMode = 'api' }: 
         </a>
         <nav className={styles.navLinks} aria-label="Điều hướng chính">
           <a href="/" className={styles.navLink}>Tổng quan</a>
-          <a href="/supplier" className={styles.navLink}>🏢 Nhà cung cấp</a>
-          <a href="/buyer" className={`${styles.navLink} ${styles.navLinkActive}`} aria-current="page">🛒 Bên mua</a>
+          <a href="/supplier" className={styles.navLink}>Nhà cung cấp</a>
+          <a href="/buyer" className={`${styles.navLink} ${styles.navLinkActive}`} aria-current="page">Bên mua</a>
+          <a href="/auth" className={styles.navLink}>Tài khoản</a>
         </nav>
         <span className={styles.publicLabel}>Báo cáo công khai</span>
       </header>
@@ -74,7 +75,10 @@ export function BuyerWorkspace({ source, initialBatches, initialMode = 'api' }: 
         <div className={styles.heading}>
           <div><h1>Báo cáo nhà cung cấp</h1><p className={styles.subtitle}>Kết quả được công bố bởi Supplier. Dữ liệu đầu vào và bằng chứng không nằm trong báo cáo công khai.</p></div>
           <button className={styles.refresh} onClick={() => void load()} disabled={loading}>
-            <span aria-hidden="true">↻</span> {loading ? 'Đang tải…' : 'Tải lại'}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ verticalAlign: 'middle', marginRight: '4px' }}>
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+            </svg>
+            {loading ? 'Đang tải…' : 'Tải lại'}
           </button>
         </div>
 
@@ -88,7 +92,14 @@ export function BuyerWorkspace({ source, initialBatches, initialMode = 'api' }: 
           <section className={styles.reports} aria-labelledby="reports-title" aria-busy={loading}>
             <div className={styles.sectionTitle}><h2 id="reports-title">Danh sách lô hàng</h2><span className={styles.muted}>{batches.length} báo cáo</span></div>
             <div className={styles.toolbar}>
-              <label className={styles.search}><span aria-hidden="true">⌕</span><span className={styles.srOnly}>Tìm theo mã lô hoặc sản phẩm</span><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Tìm mã lô hoặc sản phẩm…" /></label>
+              <label className={styles.search}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ marginRight: '4px', verticalAlign: 'middle' }}>
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.35-4.35" />
+                </svg>
+                <span className={styles.srOnly}>Tìm theo mã lô hoặc sản phẩm</span>
+                <input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Tìm mã lô hoặc sản phẩm…" />
+              </label>
               {!source && <label className={styles.sourceLabel}><span className={styles.srOnly}>Nguồn dữ liệu</span><select value={mode} onChange={event => switchMode(event.target.value === 'sample' ? 'sample' : 'api')}><option value="api">Dữ liệu hệ thống</option><option value="sample">Dữ liệu mẫu</option></select></label>}
             </div>
             {mode === 'sample' && !source && <p className={styles.sampleNotice}>Đang xem dữ liệu mẫu để phát triển giao diện. Chuyển sang “Dữ liệu hệ thống” để đọc báo cáo từ API.</p>}

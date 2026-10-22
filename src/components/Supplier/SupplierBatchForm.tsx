@@ -74,7 +74,7 @@ export const SupplierBatchForm: React.FC<SupplierBatchFormProps> = ({
         </div>
 
         <div className={styles.alertInfo} style={{ marginBottom: '20px' }}>
-          <strong>Mã hóa đầu cuối (E2EE):</strong> Dữ liệu tiêu thụ điện năng, vật liệu, quãng đường vận tải, chất thải và chứng từ sẽ được <strong>mã hóa E2EE bằng TideCloak SDK</strong> trực tiếp trên trình duyệt của bạn trước khi gửi. Bên mua chỉ thấy bản tóm tắt công khai (Public Summary).
+          <strong>Bảo mật E2EE:</strong> Dữ liệu hoạt động và chứng từ được mã hóa bằng TideCloak SDK tại trình duyệt trước khi gửi.
         </div>
 
         {errors['root'] && (
@@ -347,10 +347,10 @@ export const SupplierBatchForm: React.FC<SupplierBatchFormProps> = ({
         {/* Thao tác nhanh */}
         <div className={styles.asideCard}>
           <div className={styles.asideCardTitle}>
-            <span>⚡</span> Dữ liệu mẫu chuẩn DEMO-001
+            Dữ liệu mẫu DEMO-001
           </div>
           <p className={styles.muted}>
-            Nạp nhanh toàn bộ 8 trường dữ liệu kiểm thử chuẩn của ScopeZero để thử nghiệm luồng tính và mã hóa E2EE.
+            Nạp nhanh 8 trường dữ liệu kiểm thử chuẩn của ScopeZero để tính và mã hóa E2EE.
           </p>
           <button
             type="button"
@@ -365,7 +365,7 @@ export const SupplierBatchForm: React.FC<SupplierBatchFormProps> = ({
         {/* Bảng hệ số phát thải */}
         <div className={styles.asideCard}>
           <div className={styles.asideCardTitle}>
-            <span>📊</span> Hệ số phát thải (demo-factors-v1)
+            Hệ số phát thải (demo-factors-v1)
           </div>
           <dl className={styles.metadata}>
             <div>
@@ -390,7 +390,7 @@ export const SupplierBatchForm: React.FC<SupplierBatchFormProps> = ({
         {/* Cam kết bảo mật */}
         <div className={styles.asideCard}>
           <div className={styles.asideCardTitle}>
-            <span>🛡️</span> Bảo vệ bí mật kinh doanh
+            Bảo vệ bí mật kinh doanh
           </div>
           <p className={styles.muted} style={{ lineHeight: '1.5' }}>
             Toàn bộ công thức tính toán và mã hóa được thực hiện tại client. Bên mua chỉ nhận được tổng phát thải và suất phát thải.

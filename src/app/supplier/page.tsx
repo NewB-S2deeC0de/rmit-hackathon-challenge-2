@@ -47,7 +47,10 @@ const initialEmptyValues: BatchFormValues = {
   evidence: ''
 };
 
+import { useAuth } from '../../lib/auth/useAuth';
+
 export default function SupplierPage() {
+  const { user } = useAuth();
   // Trạng thái điều hướng giao diện: 'form' | 'preview' | 'decryption'
   const [activeTab, setActiveTab] = useState<'form' | 'preview' | 'decryption'>('form');
 
@@ -195,10 +198,10 @@ export default function SupplierPage() {
 
   return (
     <div className={styles.workspace}>
-      {/* Universal Topbar (Identical layout to Buyer Portal) */}
+      {/* Universal Topbar */}
       <header className={styles.topbar}>
         <a href="/" className={styles.brand} aria-label="ScopeZero — Trang chủ">
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 28 28" fill="none" aria-hidden="true">
             <path d="M21 5H10a5 5 0 0 0 0 10h8a4 4 0 0 1 0 8H7" stroke="currentColor" strokeWidth="2.5" />
             <path d="M18 2v6M10 20v6" stroke="currentColor" strokeWidth="2" />
           </svg>
@@ -206,19 +209,22 @@ export default function SupplierPage() {
         </a>
         <nav className={styles.navLinks} aria-label="Điều hướng chính">
           <a href="/" className={styles.navLink}>Tổng quan</a>
-          <a href="/supplier" className={`${styles.navLink} ${styles.navLinkActive}`} aria-current="page">🏢 Nhà cung cấp</a>
-          <a href="/buyer" className={styles.navLink}>🛒 Bên mua</a>
+          <a href="/supplier" className={`${styles.navLink} ${styles.navLinkActive}`} aria-current="page">Nhà cung cấp</a>
+          <a href="/buyer" className={styles.navLink}>Bên mua</a>
+          <a href="/auth" className={styles.navLink}>
+            {user ? `${user.company}` : 'Tài khoản'}
+          </a>
         </nav>
-        <span className={styles.securityBadge}>TideCloak E2EE bảo vệ</span>
+        <span className={styles.securityBadge}>TideCloak E2EE</span>
       </header>
 
       {/* Main Sheet Container */}
       <main className={styles.sheet} id="supplier-workspace">
         <div className={styles.heading}>
           <div>
-            <h1>Khai báo & Quản lý phát thải nhà cung cấp</h1>
+            <h1>Khai báo phát thải lô hàng</h1>
             <p className={styles.subtitle}>
-              Khai báo dữ liệu phát thải Scope 3, tính toán dấu chân carbon (PCF v1) và bảo vệ bí mật kinh doanh nguyên vật liệu bằng mã hóa TideCloak E2EE trước khi gửi lên hệ thống.
+              Tính toán dấu chân carbon (PCF v1) và niêm phong E2EE trước khi công bố cho bên mua.
             </p>
           </div>
           <div className={styles.headingActions}>
@@ -228,7 +234,7 @@ export default function SupplierPage() {
               onClick={handleFillDemo}
               title="Điền dữ liệu mẫu chuẩn DEMO-001"
             >
-              <span aria-hidden="true">⚡</span> Mẫu DEMO-001
+              Mẫu DEMO-001
             </button>
             <button
               type="button"
@@ -236,26 +242,26 @@ export default function SupplierPage() {
               onClick={handleResetForm}
               title="Xóa trắng dữ liệu nhập"
             >
-              <span aria-hidden="true">↻</span> Xóa trắng
+              Làm mới
             </button>
           </div>
         </div>
 
-        {/* 3-Column Context Stats Bar (Identical to Buyer Portal) */}
+        {/* 3-Column Context Stats Bar */}
         <div className={styles.context}>
           <div>
             <span className={styles.contextLabel}>Tài khoản</span>
-            <strong>Supplier (Company A)</strong>
-            <span className={styles.muted}>Xác thực token TideCloak</span>
+            <strong>{user?.company || 'Supplier (Company A)'}</strong>
+            <span className={styles.muted}>Xác thực TideCloak Active</span>
           </div>
           <div>
             <span className={styles.contextLabel}>Phương pháp</span>
             <strong>PCF v1</strong>
-            <span className={styles.muted}>Hệ số demo-factors-v1 (tính máy khách)</span>
+            <span className={styles.muted}>Hệ số demo-factors-v1 (tính tại client)</span>
           </div>
           <div>
-            <span className={styles.contextLabel}>Bảo vệ dữ liệu</span>
-            <strong>E2EE Client Encryption</strong>
+            <span className={styles.contextLabel}>Bảo vệ</span>
+            <strong>Mã hóa đầu cuối E2EE</strong>
             <span className={styles.muted}>Thẻ _tide_supplier_internal</span>
           </div>
         </div>
@@ -281,7 +287,7 @@ export default function SupplierPage() {
               }
             }}
           >
-            <span>2. Xem trước PCF & Phân định</span>
+            <span>2. Xem trước & Phân định</span>
             {pcfResult && <span className={styles.tabCount}>Sẵn sàng</span>}
           </button>
 
