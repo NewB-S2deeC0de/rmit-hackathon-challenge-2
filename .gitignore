@@ -11,3 +11,8 @@ build/
 # Storage phát sinh lúc chạy thử nghiệm (không commit)
 storage/*.json
 !storage/.gitkeep
+
+# Thư mục kiểm thử cục bộ độc lập của Thành viên 3 (tránh xung đột nhánh)
+demo-local/
+.superpowers/
+
