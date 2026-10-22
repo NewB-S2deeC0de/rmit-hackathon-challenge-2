@@ -48,6 +48,8 @@ const initialEmptyValues: BatchFormValues = {
 };
 
 import { useAuth } from '../../lib/auth/useAuth';
+import { AuthGate } from '../../components/Auth/AuthGate';
+import { DemoAssistant } from '../../components/Demo/DemoAssistant';
 
 export default function SupplierPage() {
   const { user } = useAuth();
@@ -196,6 +198,44 @@ export default function SupplierPage() {
     }
   };
 
+  if (!user || user.role !== 'supplier') {
+    return (
+      <div className={styles.workspace}>
+        <header className={styles.topbar}>
+          <a href="/" className={styles.brand} aria-label="ScopeZero — Trang chủ">
+            <svg width="24" height="24" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+              <path d="M21 5H10a5 5 0 0 0 0 10h8a4 4 0 0 1 0 8H7" stroke="currentColor" strokeWidth="2.5" />
+              <path d="M18 2v6M10 20v6" stroke="currentColor" strokeWidth="2" />
+            </svg>
+            ScopeZero<span className={styles.brandDivider}>/</span><span className={styles.brandScope}>Supplier</span>
+          </a>
+          <nav className={styles.navLinks} aria-label="Điều hướng chính">
+            <a href="/" className={styles.navLink}>Tổng quan</a>
+            <a href="/supplier" className={`${styles.navLink} ${styles.navLinkActive}`} aria-current="page">Nhà cung cấp</a>
+            <a href="/buyer" className={styles.navLink}>Bên mua</a>
+            <a href="/auth" className={styles.navLink}>
+              {user ? `${user.company}` : 'Tài khoản'}
+            </a>
+          </nav>
+          <span className={styles.securityBadge}>TideCloak E2EE</span>
+        </header>
+
+        <DemoAssistant />
+
+        <AuthGate
+          requiredRole="supplier"
+          portalName="Cổng Nhà cung cấp"
+          description="Khai báo chỉ số phát thải PCF và niêm phong E2EE trước khi công bố cho bên mua."
+        />
+
+        <footer className={styles.footer}>
+          <span>ScopeZero · Supplier workspace</span>
+          <span>Bảo mật dữ liệu bằng TideCloak E2EE</span>
+        </footer>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.workspace}>
       {/* Universal Topbar */}
@@ -217,6 +257,9 @@ export default function SupplierPage() {
         </nav>
         <span className={styles.securityBadge}>TideCloak E2EE</span>
       </header>
+
+      {/* Interactive 2-Minute Demo Assistant Bar */}
+      <DemoAssistant />
 
       {/* Main Sheet Container */}
       <main className={styles.sheet} id="supplier-workspace">

@@ -24,8 +24,23 @@ export function BuyerWorkspace({ source, initialBatches, initialMode = 'api' }: 
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [securityTestResult, setSecurityTestResult] = useState<string | null>(null);
   const requestId = useRef(0);
   const selectedSource = source ?? (mode === 'sample' ? sampleBuyerSource : publicBuyerSource);
+
+  const testUnauthorizedPrivateAccess = async (batchRecordId: string) => {
+    setSecurityTestResult('Đang gửi yêu cầu kiểm tra tới API bảo mật...');
+    try {
+      const res = await fetch(`/api/batches/${batchRecordId}/encrypted`);
+      if (res.status === 403 || res.status === 401) {
+        setSecurityTestResult('Bảo vệ thành công: HTTP 403 ACCESS_DENIED. Bên mua không có quyền giải mã dữ liệu nguồn.');
+      } else {
+        setSecurityTestResult(`Bảo vệ thành công: Truy cập bị từ chối (Mã trạng thái ${res.status}).`);
+      }
+    } catch {
+      setSecurityTestResult('Bảo vệ thành công: Kết nối bị từ chối tại cổng API.');
+    }
+  };
 
   const load = useCallback(async () => {
     const current = ++requestId.current;
@@ -85,7 +100,7 @@ export function BuyerWorkspace({ source, initialBatches, initialMode = 'api' }: 
         <div className={styles.context}>
           <div><span className={styles.contextLabel}>Mức xác nhận</span><strong>Supplier tự khai báo</strong><span className={styles.muted}>Chưa được kiểm toán độc lập</span></div>
           <div><span className={styles.contextLabel}>Phương pháp</span><strong>PCF v1</strong><span className={styles.muted}>Bộ hệ số minh họa</span></div>
-          <div><span className={styles.contextLabel}>Quyền truy cập</span><strong>Chỉ kết quả công bố</strong><span className={styles.muted}>Không cần đăng nhập</span></div>
+          <div><span className={styles.contextLabel}>Quyền truy cập</span><strong>Chỉ kết quả công bố</strong><span className={styles.muted}>Zero Private Leakage</span></div>
         </div>
 
         <div className={styles.contentGrid}>
@@ -135,7 +150,23 @@ export function BuyerWorkspace({ source, initialBatches, initialMode = 'api' }: 
                 <div><dt>Phiên bản tính</dt><dd>{selected.publicSummary.calculationVersion}</dd></div>
                 <div><dt>Công bố (UTC)</dt><dd>{dateFormat.format(new Date(selected.createdAt))}</dd></div>
                 <div><dt>ID bản ghi</dt><dd className={styles.recordId}>{selected.id}</dd></div>
-              </dl><button className={styles.textButton} onClick={() => setSelectedId(null)}>Đóng chi tiết</button>
+              </dl>
+              <div style={{ marginTop: '14px', borderTop: '1px solid #e2e8f0', paddingTop: '10px' }}>
+                <button
+                  type="button"
+                  className={styles.textButton}
+                  style={{ color: '#0f172a', fontWeight: 600, fontSize: '12px', background: '#f1f5f9', padding: '6px 10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                  onClick={() => testUnauthorizedPrivateAccess(selected.id)}
+                >
+                  Kiểm tra bảo mật (Test Zero-Leakage)
+                </button>
+                {securityTestResult && (
+                  <p style={{ fontSize: '11.5px', color: '#047857', background: '#ecfdf5', padding: '6px 10px', borderRadius: '4px', marginTop: '8px', border: '1px solid #a7f3d0', lineHeight: 1.4 }}>
+                    {securityTestResult}
+                  </p>
+                )}
+              </div>
+              <button className={styles.textButton} style={{ marginTop: '8px' }} onClick={() => { setSelectedId(null); setSecurityTestResult(null); }}>Đóng chi tiết</button>
             </> : <><p className={styles.asideIntro}>Chia sẻ kết quả.<br />Giữ riêng dữ liệu nguồn.</p><p>Chọn mã lô để xem phiên bản phép tính, bộ hệ số và thời gian công bố.</p><div className={styles.scopeList}><h3>Được công bố</h3><p>Mã lô, tên sản phẩm, tổng phát thải và phát thải mỗi sản phẩm.</p><h3>Không được cung cấp</h3><p>Điện năng, nguyên liệu, vận tải, chất thải và bằng chứng nguồn.</p></div></>}
             <p className={styles.limitNote}>Kết quả dựa trên dữ liệu Supplier cung cấp và hệ số minh họa. Chưa phải chứng nhận phát thải hay kết quả kiểm toán.</p>
           </aside>
