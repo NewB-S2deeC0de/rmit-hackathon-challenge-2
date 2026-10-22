@@ -1,0 +1,13 @@
+{
+  "realm": "scopezero-realm",
+  "auth-server-url": "http://localhost:8080",
+  "ssl-required": "external",
+  "resource": "scopezero-web",
+  "public-client": true,
+  "confidential-port": 0,
+  "standard-flow-enabled": true,
+  "valid-redirect-uris": [
+    "http://localhost:3000/*",
+    "http://localhost:5173/*"
+  ]
+}
