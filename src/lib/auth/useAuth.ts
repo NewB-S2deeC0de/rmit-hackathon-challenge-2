@@ -5,11 +5,14 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   AuthUser,
   RegisterPayload,
+  DemoAccountKey,
+  DEMO_ACCOUNTS,
   getCurrentUser,
   login as authLogin,
   register as authRegister,
   logout as authLogout,
-  loginDemo as authLoginDemo
+  loginDemo as authLoginDemo,
+  loginAsPreset as authLoginAsPreset
 } from './authStore';
 import { AppRole } from '../../types';
 
@@ -56,15 +59,23 @@ export function useAuth() {
     return demo;
   };
 
+  const loginAsPreset = (key: DemoAccountKey) => {
+    const preset = authLoginAsPreset(key);
+    setUser(preset);
+    return preset;
+  };
+
   return {
     user,
     isLoading,
     isAuthenticated: !!user,
     isSupplier: user?.role === 'supplier',
     isBuyer: user?.role === 'buyer',
+    demoAccounts: DEMO_ACCOUNTS,
     login,
     register,
     logout,
-    loginDemo
+    loginDemo,
+    loginAsPreset
   };
 }

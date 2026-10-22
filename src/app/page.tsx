@@ -1,8 +1,23 @@
 // src/app/page.tsx
+'use client';
+
+import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
+import { useAuth } from '../lib/auth/useAuth';
+import { DemoAssistant } from '../components/Demo/DemoAssistant';
+import { DemoAccountKey } from '../lib/auth/authStore';
 
 export default function HomePage() {
+  const router = useRouter();
+  const { user, isAuthenticated, loginAsPreset, logout } = useAuth();
+
+  const handleQuickLogin = (key: DemoAccountKey, targetPath: string) => {
+    loginAsPreset(key);
+    router.push(targetPath);
+  };
+
   return (
     <div className={styles.page}>
       {/* Navigation Header */}
@@ -20,10 +35,15 @@ export default function HomePage() {
             <Link href="/" className={styles.navLink}>Tổng quan</Link>
             <Link href="/supplier" className={styles.navLink}>Nhà cung cấp</Link>
             <Link href="/buyer" className={styles.navLink}>Bên mua</Link>
-            <Link href="/auth" className={styles.navBtn}>Tài khoản</Link>
+            <Link href="/auth" className={styles.navBtn}>
+              {isAuthenticated && user ? `${user.company}` : 'Đăng nhập'}
+            </Link>
           </nav>
         </div>
       </header>
+
+      {/* Interactive 2-Minute Demo Assistant Bar */}
+      <DemoAssistant />
 
       {/* Hero Section */}
       <main className={styles.container}>
@@ -37,6 +57,65 @@ export default function HomePage() {
           <p className={styles.heroSubtitle}>
             Giải pháp công bố dấu chân carbon (PCF v1) không để lộ dữ liệu điện năng, nguyên vật liệu và công suất nhà máy.
           </p>
+
+          {/* Auth Gate Reminder & 1-Click Mock Preset Selector */}
+          <div className={styles.authStatusBanner}>
+            <div className={styles.authBannerHeader}>
+              <div className={styles.authNoticeText}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                {isAuthenticated && user ? (
+                  <span>Đang đăng nhập: <strong>{user.company}</strong> ({user.name})</span>
+                ) : (
+                  <span>Bắt buộc đăng nhập để truy cập workspace — Chọn nhanh tài khoản mock:</span>
+                )}
+              </div>
+              {isAuthenticated && user && (
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <span className={styles.authActiveBadge}>
+                    {user.role === 'supplier' ? 'Supplier Active' : 'Buyer Active'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={logout}
+                    style={{ background: 'none', border: 'none', color: '#be123c', fontSize: '11.5px', cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    Đăng xuất
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className={styles.quickLoginRow}>
+              <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Mock 1-Click:</span>
+              <button
+                type="button"
+                className={`${styles.quickChip} ${user?.id === 'supplier-demo' ? styles.quickChipActive : ''}`}
+                onClick={() => handleQuickLogin('supplier', '/supplier')}
+              >
+                Supplier A (Cơ khí A - Owner)
+              </button>
+              <button
+                type="button"
+                className={`${styles.quickChip} ${user?.id === 'supplier-other' ? styles.quickChipActive : ''}`}
+                onClick={() => handleQuickLogin('supplier2', '/supplier')}
+              >
+                Supplier B (Điện tử B - Tenant khác)
+              </button>
+              <button
+                type="button"
+                className={`${styles.quickChip} ${user?.id === 'buyer-demo' ? styles.quickChipActive : ''}`}
+                onClick={() => handleQuickLogin('buyer', '/buyer')}
+              >
+                Buyer (Tập đoàn Mua Hàng B)
+              </button>
+              <Link href="/auth" className={styles.quickChip}>
+                Tất cả tài khoản / Tự nhập →
+              </Link>
+            </div>
+          </div>
         </section>
 
         {/* Portals Gateway Cards */}
@@ -97,7 +176,7 @@ export default function HomePage() {
             <ul className={styles.featuresList}>
               <li className={styles.featureItem}>
                 <span className={styles.featureCheck}>—</span>
-                <span>Đọc tổng phát thải và suất phát thải không cần đăng nhập.</span>
+                <span>Đọc tổng phát thải và suất phát thải sau khi đăng nhập.</span>
               </li>
               <li className={styles.featureItem}>
                 <span className={styles.featureCheck}>—</span>
@@ -105,7 +184,7 @@ export default function HomePage() {
               </li>
               <li className={styles.featureItem}>
                 <span className={styles.featureCheck}>—</span>
-                <span>Không có quyền truy cập dữ liệu hoạt động nguồn.</span>
+                <span>Không có quyền truy cập dữ liệu hoạt động nguồn (Zero Leakage).</span>
               </li>
             </ul>
             <Link href="/buyer" className={styles.cardCtaBuyer}>
@@ -117,8 +196,8 @@ export default function HomePage() {
         {/* Security Architecture Flow */}
         <section className={styles.architectureSection}>
           <div className={styles.sectionHeader}>
-            <h2>Quy trình phân định ranh giới dữ liệu</h2>
-            <p>Bảo đảm tính toàn vẹn và bảo mật từ máy khách đến lưu trữ</p>
+            <h2>Quy trình liên kết Supplier - Buyer & Bảo mật E2EE</h2>
+            <p>Bảo đảm tính toàn vẹn và phân định ranh giới dữ liệu từ máy khách đến bên mua</p>
           </div>
 
           <div className={styles.archGrid}>
@@ -126,28 +205,28 @@ export default function HomePage() {
               <span className={styles.stepNum}>BƯỚC 1</span>
               <h3 className={styles.stepTitle}>Tính toán cục bộ</h3>
               <p className={styles.stepDesc}>
-                Nhập liệu và tính toán phát thải ngay trên máy khách Supplier.
+                Nhập liệu và tính toán phát thải (1,690 kg CO₂e) ngay trên máy khách Supplier.
               </p>
             </div>
             <div className={styles.archStep}>
               <span className={styles.stepNum}>BƯỚC 2</span>
               <h3 className={styles.stepTitle}>Niêm phong E2EE</h3>
               <p className={styles.stepDesc}>
-                Mã hóa dữ liệu nhạy cảm bằng TideCloak SDK trước khi truyền.
+                Mã hóa dữ liệu nhạy cảm bằng TideCloak SDK thẻ <code>_tide_supplier_internal</code> trước khi truyền.
               </p>
             </div>
             <div className={styles.archStep}>
               <span className={styles.stepNum}>BƯỚC 3</span>
               <h3 className={styles.stepTitle}>Lưu trữ an toàn</h3>
               <p className={styles.stepDesc}>
-                Máy chủ chỉ lưu trữ bản tóm tắt công khai và envelope mã hóa.
+                Máy chủ chỉ lưu trữ bản tóm tắt công khai và envelope mã hóa. Zero Private Leakage.
               </p>
             </div>
             <div className={styles.archStep}>
               <span className={styles.stepNum}>BƯỚC 4</span>
               <h3 className={styles.stepTitle}>Công bố cho Buyer</h3>
               <p className={styles.stepDesc}>
-                Bên mua nhận chỉ số phát thải mà không truy cập được dữ liệu gốc.
+                Bên mua nhận chỉ số phát thải mà không thể truy cập hay giải mã dữ liệu gốc.
               </p>
             </div>
           </div>
