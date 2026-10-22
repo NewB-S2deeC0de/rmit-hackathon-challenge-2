@@ -24,6 +24,11 @@ TideCloak là hướng tích hợp xác thực, kiểm soát giải mã và phê
 
 Supplier A nhập mẫu, tính PCF, mã hóa rồi nộp backend. Buyer đọc báo cáo đã lưu. API từ chối Buyer đọc bản mã (`403`), Supplier khác (`404`); chính chủ được tải và giải mã. Bản mẫu chưa xác minh tính đúng đắn của dữ liệu nguồn.
 
+### 6. Video demo & presentation script
+
+- **Video demo 2 phút:** [demo.mp4](demo.mp4)
+- **Kịch bản thuyết trình chi tiết & Hỏi đáp phản biện:** [docs/DEMO_SCRIPT_2_MINUTES.md](docs/DEMO_SCRIPT_2_MINUTES.md)
+
 ## Setup
 
 Chạy `npm ci`, `npm run setup:demo`, `npm run dev`; mở http://localhost:3000/auth, chọn tài khoản mẫu. Xem [INSTALL.md](INSTALL.md) để cài đặt, kiểm thử và biết giới hạn demo.
