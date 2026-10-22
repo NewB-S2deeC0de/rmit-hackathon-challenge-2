@@ -208,10 +208,10 @@ export default function SupplierPage() {
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
           <div className={styles.badgeGroup}>
-            <a href="/" style={{ color: '#8b949e', textDecoration: 'none', padding: '5px 12px', fontSize: '12.5px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}>
+            <a href="/" style={{ color: '#334155', textDecoration: 'none', padding: '5px 12px', fontSize: '12px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: 500 }}>
               🏠 Trang Chủ
             </a>
-            <a href="/buyer" style={{ color: '#38bdf8', textDecoration: 'none', padding: '5px 12px', fontSize: '12.5px', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '8px' }}>
+            <a href="/buyer" style={{ color: '#0369a1', textDecoration: 'none', padding: '5px 12px', fontSize: '12px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '6px', fontWeight: 500 }}>
               🛒 Sang Cổng Bên Mua ➔
             </a>
           </div>

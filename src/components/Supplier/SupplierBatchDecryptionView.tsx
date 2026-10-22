@@ -136,7 +136,7 @@ export const SupplierBatchDecryptionView: React.FC<SupplierBatchDecryptionViewPr
       {currentBatch && (
         <div>
           {/* Thông tin bản mã thô */}
-          <div style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
+          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '16px', marginBottom: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <span style={{ fontSize: '0.85rem', color: '#8b949e' }}>Trạng Thái Lưu Trữ Trên Máy Chủ & CSDL:</span>
               <span className={styles.securityBadge}>Đã Mã Hóa TideCloak v1</span>

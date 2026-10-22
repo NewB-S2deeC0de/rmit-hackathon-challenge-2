@@ -1,5 +1,6 @@
 /* src/app/globals.css */
-/* ScopeZero Design System: Carbon Slate & Emerald E2EE Cryptographic Theme */
+/* ScopeZero Minimalist Light Design System (/minimalist-ui) */
+/* Clean editorial-style interface, warm monochrome palette, typographic contrast, flat bento grids */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
@@ -7,31 +8,51 @@
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  /* Color Palette */
-  --bg-dark: #090d12;
-  --bg-surface: #111823;
-  --bg-card: rgba(19, 27, 39, 0.78);
-  --bg-elevated: rgba(26, 38, 54, 0.85);
+  /* Clean Light Minimalist Palette */
+  --bg-ground: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-elevated: #ffffff;
 
-  --text-main: #f0f6fc;
-  --text-muted: #8b949e;
-  --text-subtle: #64748b;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
 
-  --accent-emerald: #10b981;
-  --accent-emerald-glow: rgba(16, 185, 129, 0.25);
-  --accent-cyan: #06b6d4;
-  --accent-cyan-glow: rgba(6, 182, 212, 0.25);
-  --accent-amber: #f59e0b;
-  --accent-rose: #f43f5e;
+  /* Muted Pastels & Accents (No harsh gradients) */
+  --accent-forest: #059669;
+  --accent-forest-soft: #ecfdf5;
+  --accent-forest-border: #a7f3d0;
 
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-medium: rgba(255, 255, 255, 0.15);
-  --border-emerald: rgba(16, 185, 129, 0.35);
+  --accent-slate: #0f172a;
+  --accent-slate-soft: #f8fafc;
+
+  --accent-sky: #0284c7;
+  --accent-sky-soft: #f0f9ff;
+  --accent-sky-border: #bae6fd;
+
+  --accent-amber: #d97706;
+  --accent-amber-soft: #fffbeb;
+  --accent-amber-border: #fde68a;
+
+  --accent-rose: #e11d48;
+  --accent-rose-soft: #fff1f2;
+  --accent-rose-border: #fecdd3;
+
+  /* Hairline Borders & Shadows */
+  --border-hairline: #e2e8f0;
+  --border-medium: #cbd5e1;
+  --border-focus: #0f172a;
 
   --radius-sm: 6px;
   --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  --shadow-flat: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-elevated: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
 }
 
 * {
@@ -41,38 +62,38 @@
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
   scroll-behavior: smooth;
-  background-color: var(--bg-dark);
+  background-color: var(--bg-ground);
 }
 
 body {
   font-family: var(--font-sans);
-  background: radial-gradient(circle at 50% 0%, #152232 0%, #090d12 65%);
-  color: var(--text-main);
+  background-color: var(--bg-ground);
+  color: var(--text-primary);
   min-height: 100vh;
-  line-height: 1.6;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar for Light Minimalist */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #090d12;
+  background: var(--bg-ground);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: #cbd5e1;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(16, 185, 129, 0.4);
+  background: #94a3b8;
 }
 
 /* Global utility classes */

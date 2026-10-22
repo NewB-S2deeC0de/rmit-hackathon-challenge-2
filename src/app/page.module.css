@@ -1,31 +1,32 @@
 /* src/app/page.module.css */
-/* ScopeZero Portal Hub Styling */
+/* ScopeZero Minimalist Light Theme (/minimalist-ui) */
 
 .page {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: var(--bg-ground, #f8fafc);
 }
 
 .container {
   width: 100%;
-  max-width: 1280px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 24px;
 }
 
 /* Global Nav */
 .navHeader {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(9, 13, 18, 0.85);
-  backdrop-filter: blur(16px);
+  border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
   position: sticky;
   top: 0;
   z-index: 50;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
 }
 
 .navInner {
-  height: 72px;
+  height: 68px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -34,208 +35,180 @@
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   text-decoration: none;
 }
 
 .brandIcon {
-  width: 38px;
-  height: 38px;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2));
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  border-radius: 10px;
+  width: 34px;
+  height: 34px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
+  font-size: 18px;
 }
 
 .brandText {
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 20px;
+  font-weight: 700;
   letter-spacing: -0.5px;
-  background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #0f172a;
 }
 
 .navLinks {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .navLink {
-  color: var(--text-muted);
+  color: #64748b;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 500;
-  padding: 8px 16px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  padding: 6px 14px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
   border: 1px solid transparent;
 }
 
 .navLink:hover {
-  color: var(--text-main);
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
+  color: #0f172a;
+  background: #f1f5f9;
 }
 
 .navBtn {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
+  background: #0f172a;
+  color: #ffffff;
   text-decoration: none;
   font-size: 13px;
-  font-weight: 600;
-  padding: 8px 16px;
-  border-radius: 8px;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
-  transition: all 0.2s ease;
+  font-weight: 500;
+  padding: 7px 15px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
 }
 
 .navBtn:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.1);
+  background: #334155;
 }
 
 /* Hero Section */
 .hero {
-  padding: 64px 0 40px;
+  padding: 56px 0 36px;
   text-align: center;
 }
 
 .heroBadge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 16px;
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  gap: 6px;
+  padding: 4px 14px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
   border-radius: 20px;
-  color: #34d399;
-  font-size: 13px;
+  color: #047857;
+  font-size: 12.5px;
   font-weight: 600;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .heroTitle {
-  font-size: 2.8rem;
-  line-height: 1.2;
+  font-size: 2.6rem;
+  line-height: 1.25;
   font-weight: 800;
-  letter-spacing: -1px;
-  max-width: 900px;
-  margin: 0 auto 20px;
-  color: #f8fafc;
+  letter-spacing: -0.8px;
+  max-width: 860px;
+  margin: 0 auto 16px;
+  color: #0f172a;
 }
 
 .gradientText {
-  background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #38bdf8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #059669;
 }
 
 .heroSubtitle {
-  font-size: 1.15rem;
-  color: var(--text-muted);
-  max-width: 760px;
-  margin: 0 auto 36px;
+  font-size: 1.1rem;
+  color: #64748b;
+  max-width: 720px;
+  margin: 0 auto 32px;
   line-height: 1.6;
 }
 
-/* Portal Cards Grid */
+/* Bento Grid */
 .portalsGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 28px;
-  margin: 20px 0 60px;
+  gap: 24px;
+  margin: 16px 0 48px;
 }
 
 .portalCard {
-  background: rgba(19, 27, 39, 0.75);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 36px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 32px;
   display: flex;
   flex-direction: column;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
-  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03);
 }
 
 .portalCard:hover {
-  transform: translateY(-4px);
-  border-color: rgba(16, 185, 129, 0.4);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(16, 185, 129, 0.15);
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.05);
 }
 
-.cardGlowSupplier {
-  position: absolute;
-  top: -60px;
-  right: -60px;
-  width: 160px;
-  height: 160px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%);
-  border-radius: 50%;
-  pointer-events: none;
-}
-
+.cardGlowSupplier,
 .cardGlowBuyer {
-  position: absolute;
-  top: -60px;
-  right: -60px;
-  width: 160px;
-  height: 160px;
-  background: radial-gradient(circle, rgba(6, 182, 212, 0.25) 0%, transparent 70%);
-  border-radius: 50%;
-  pointer-events: none;
+  display: none; /* No tacky glowing orbs in minimalist style */
 }
 
 .cardHeader {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 14px;
+  margin-bottom: 16px;
 }
 
 .cardIcon {
-  width: 52px;
-  height: 52px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
+  width: 44px;
+  height: 44px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
+  font-size: 22px;
 }
 
 .cardRole {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #34d399;
-  margin-bottom: 4px;
+  color: #059669;
+  margin-bottom: 2px;
 }
 
 .cardRoleBuyer {
-  color: #38bdf8;
+  color: #0284c7;
 }
 
 .cardTitle {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
-  color: #f8fafc;
+  color: #0f172a;
 }
 
 .cardDesc {
-  color: var(--text-muted);
-  font-size: 14px;
+  color: #64748b;
+  font-size: 13.5px;
   line-height: 1.6;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   flex: 1;
 }
 
@@ -243,20 +216,22 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 32px;
+  gap: 10px;
+  margin-bottom: 28px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 16px;
 }
 
 .featureItem {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  font-size: 13.5px;
-  color: #cbd5e1;
+  gap: 8px;
+  font-size: 13px;
+  color: #334155;
 }
 
 .featureCheck {
-  color: #10b981;
+  color: #059669;
   font-weight: bold;
 }
 
@@ -264,70 +239,67 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
+  gap: 8px;
+  background: #0f172a;
+  color: #ffffff;
   text-decoration: none;
-  padding: 14px 24px;
-  border-radius: 12px;
+  padding: 12px 20px;
+  border-radius: 8px;
   font-weight: 600;
-  font-size: 15px;
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
-  transition: all 0.2s ease;
+  font-size: 14px;
+  transition: background-color 0.15s ease;
 }
 
 .cardCtaSupplier:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.1);
-  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+  background: #334155;
 }
 
 .cardCtaBuyer {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-  color: white;
+  gap: 8px;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
   text-decoration: none;
-  padding: 14px 24px;
-  border-radius: 12px;
+  padding: 12px 20px;
+  border-radius: 8px;
   font-weight: 600;
-  font-size: 15px;
-  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.3);
-  transition: all 0.2s ease;
+  font-size: 14px;
+  transition: all 0.15s ease;
 }
 
 .cardCtaBuyer:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.1);
-  box-shadow: 0 8px 25px rgba(2, 132, 199, 0.4);
+  background: #f8fafc;
+  border-color: #94a3b8;
 }
 
-/* Architecture & Security Section */
+/* Architecture Section */
 .architectureSection {
-  background: rgba(17, 24, 35, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  padding: 44px;
-  margin-bottom: 60px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 36px;
+  margin-bottom: 56px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03);
 }
 
 .sectionHeader {
   text-align: center;
-  margin-bottom: 36px;
+  margin-bottom: 28px;
 }
 
 .sectionHeader h2 {
-  font-size: 24px;
+  font-size: 21px;
   font-weight: 700;
-  color: #f8fafc;
-  margin-bottom: 8px;
+  color: #0f172a;
+  margin-bottom: 6px;
 }
 
 .sectionHeader p {
-  color: var(--text-muted);
-  font-size: 14px;
+  color: #64748b;
+  font-size: 13.5px;
 }
 
 .archGrid {
@@ -337,44 +309,44 @@
 }
 
 .archStep {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
-  padding: 24px;
-  position: relative;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
 }
 
 .stepNum {
   display: inline-block;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.12);
-  padding: 3px 8px;
-  border-radius: 6px;
-  margin-bottom: 12px;
+  color: #047857;
+  background: #ecfdf5;
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin-bottom: 10px;
 }
 
 .stepTitle {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
-  color: #f1f5f9;
-  margin-bottom: 8px;
+  color: #0f172a;
+  margin-bottom: 6px;
 }
 
 .stepDesc {
   font-size: 12.5px;
-  color: var(--text-muted);
+  color: #64748b;
   line-height: 1.5;
 }
 
 /* Footer */
 .footer {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 32px 0;
+  border-top: 1px solid #e2e8f0;
+  background: #ffffff;
+  padding: 24px 0;
   margin-top: auto;
-  color: var(--text-muted);
-  font-size: 13px;
+  color: #64748b;
+  font-size: 12.5px;
 }
 
 .footerInner {
@@ -382,7 +354,7 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px;
 }
 
 @media (max-width: 900px) {
@@ -393,7 +365,7 @@
     grid-template-columns: repeat(2, 1fr);
   }
   .heroTitle {
-    font-size: 2.2rem;
+    font-size: 2.1rem;
   }
 }
 
@@ -402,10 +374,10 @@
     grid-template-columns: 1fr;
   }
   .architectureSection {
-    padding: 24px 16px;
+    padding: 20px 16px;
   }
   .portalCard {
-    padding: 24px 20px;
+    padding: 24px 18px;
   }
   .navLinks {
     display: none;

@@ -59,20 +59,20 @@ export const SupplierSummaryPreview: React.FC<SupplierSummaryPreviewProps> = ({
 
       {/* Hero Metrics */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '12px', padding: '16px 20px' }}>
-          <div style={{ color: '#8b949e', fontSize: '0.85rem', marginBottom: '4px' }}>Tổng Phát Thải Lô Hàng (Total)</div>
-          <div style={{ fontSize: '1.8rem', fontWeight: '800', color: '#34d399' }}>
+        <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '8px', padding: '16px 20px' }}>
+          <div style={{ color: '#047857', fontSize: '0.85rem', marginBottom: '4px', fontWeight: 600 }}>Tổng Phát Thải Lô Hàng (Total)</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: '800', color: '#065f46' }}>
             {result.totalKgCO2e.toLocaleString('vi-VN')} <span style={{ fontSize: '0.9rem', fontWeight: 'normal' }}>kg CO2e</span>
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#8b949e', marginTop: '4px' }}>Tính từ 4 nguồn phát thải phân bổ</div>
+          <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>Tính từ 4 nguồn phát thải phân bổ</div>
         </div>
 
-        <div style={{ background: 'rgba(6, 182, 212, 0.1)', border: '1px solid rgba(6, 182, 212, 0.3)', borderRadius: '12px', padding: '16px 20px' }}>
-          <div style={{ color: '#8b949e', fontSize: '0.85rem', marginBottom: '4px' }}>Dấu Chân Carbon Mỗi Đơn Vị (PCF)</div>
-          <div style={{ fontSize: '1.8rem', fontWeight: '800', color: '#22d3ee' }}>
+        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '8px', padding: '16px 20px' }}>
+          <div style={{ color: '#0369a1', fontSize: '0.85rem', marginBottom: '4px', fontWeight: 600 }}>Dấu Chân Carbon Mỗi Đơn Vị (PCF)</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: '800', color: '#0c4a6e' }}>
             {result.perProductKgCO2e.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} <span style={{ fontSize: '0.9rem', fontWeight: 'normal' }}>kg CO2e / sản phẩm</span>
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#8b949e', marginTop: '4px' }}>Chia đều cho {input.quantity.toLocaleString('vi-VN')} đơn vị sản phẩm</div>
+          <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>Chia đều cho {input.quantity.toLocaleString('vi-VN')} đơn vị sản phẩm</div>
         </div>
       </div>
 
@@ -82,7 +82,7 @@ export const SupplierSummaryPreview: React.FC<SupplierSummaryPreviewProps> = ({
         <p style={{ margin: '8px 0 0 0' }}>
           Bản tóm tắt công khai (<strong>Public Summary</strong>) sẽ được hiển thị công khai cho tất cả Bên mua và khách vãng lai. Mặc dù số lượng sản phẩm nội bộ (<code>quantity</code>) không được công bố trực tiếp, việc công bố đồng thời <strong>Tổng phát thải</strong> ({result.totalKgCO2e} kg CO2e) và <strong>Phát thải trên mỗi sản phẩm</strong> ({result.perProductKgCO2e} kg CO2e) về mặt toán học sẽ cho phép bất kỳ ai tính ngược lại:
         </p>
-        <div style={{ margin: '8px 0', padding: '8px 12px', background: 'rgba(0,0,0,0.3)', borderRadius: '6px', fontFamily: 'monospace', color: '#fbbf24' }}>
+        <div style={{ margin: '8px 0', padding: '8px 12px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '6px', fontFamily: 'monospace', color: '#92400e' }}>
           Số lượng sản phẩm = {result.totalKgCO2e} / {result.perProductKgCO2e} = {deducedQuantity.toLocaleString('vi-VN')} sản phẩm
         </div>
         <p style={{ margin: 0, fontSize: '0.85rem' }}>
@@ -175,7 +175,7 @@ export const SupplierSummaryPreview: React.FC<SupplierSummaryPreviewProps> = ({
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
         <button
           type="button"
           className={`${styles.btn} ${styles.btnSecondary}`}

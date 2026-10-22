@@ -75,8 +75,8 @@ export const SupplierSubmissionModal: React.FC<SupplierSubmissionModalProps> = (
         {stage === 'preparing' && (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
             <div className={styles.spinner} style={{ marginBottom: '16px' }} />
-            <h3 style={{ margin: '0 0 8px 0', color: '#f0f6fc' }}>Đang chuẩn bị hồ sơ lô hàng...</h3>
-            <p style={{ color: '#8b949e', fontSize: '0.9rem' }}>
+            <h3 style={{ margin: '0 0 8px 0', color: '#0f172a' }}>Đang chuẩn bị hồ sơ lô hàng...</h3>
+            <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
               Trích xuất dữ liệu công khai và tổng hợp Private Batch Payload theo đúng chuẩn JSON.
             </p>
           </div>
@@ -85,13 +85,13 @@ export const SupplierSubmissionModal: React.FC<SupplierSubmissionModalProps> = (
         {stage === 'encrypting' && (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
             <div className={styles.spinner} style={{ marginBottom: '16px' }} />
-            <h3 style={{ margin: '0 0 8px 0', color: '#34d399' }}>Đang mã hóa đầu cuối với TideCloak SDK...</h3>
-            <p style={{ color: '#8b949e', fontSize: '0.9rem', marginBottom: '16px' }}>
+            <h3 style={{ margin: '0 0 8px 0', color: '#059669' }}>Đang mã hóa đầu cuối với TideCloak SDK...</h3>
+            <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '16px' }}>
               Áp dụng thẻ quyền <code>_tide_supplier_internal</code> và thuật toán mật mã phần cứng.
             </p>
             {encryptedPayload && (
               <div style={{ textAlign: 'left' }}>
-                <span style={{ fontSize: '0.75rem', color: '#8b949e', display: 'block', marginBottom: '4px' }}>
+                <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', marginBottom: '4px' }}>
                   Bản mã thô sinh ra từ SDK (Encrypted Ciphertext Preview):
                 </span>
                 <div className={styles.codeBlock}>
@@ -105,8 +105,8 @@ export const SupplierSubmissionModal: React.FC<SupplierSubmissionModalProps> = (
         {stage === 'submitting' && (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
             <div className={styles.spinner} style={{ marginBottom: '16px' }} />
-            <h3 style={{ margin: '0 0 8px 0', color: '#22d3ee' }}>Đang gửi hồ sơ lên ScopeZero Backend...</h3>
-            <p style={{ color: '#8b949e', fontSize: '0.9rem' }}>
+            <h3 style={{ margin: '0 0 8px 0', color: '#0284c7' }}>Đang gửi hồ sơ lên ScopeZero Backend...</h3>
+            <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
               POST /api/batches — Chỉ truyền tóm tắt công khai và bản mã hóa.
             </p>
           </div>
@@ -115,25 +115,25 @@ export const SupplierSubmissionModal: React.FC<SupplierSubmissionModalProps> = (
         {stage === 'success' && submissionResponse && (
           <div style={{ padding: '10px 0' }}>
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-              <div style={{ fontSize: '3rem', color: '#34d399', marginBottom: '8px' }}>🎉</div>
-              <h3 style={{ margin: '0 0 8px 0', color: '#f0f6fc' }}>Nộp Hồ Sơ Lô Hàng Thành Công!</h3>
-              <p style={{ color: '#8b949e', fontSize: '0.9rem', margin: 0 }}>
+              <div style={{ fontSize: '3rem', color: '#059669', marginBottom: '8px' }}>🎉</div>
+              <h3 style={{ margin: '0 0 8px 0', color: '#0f172a' }}>Nộp Hồ Sơ Lô Hàng Thành Công!</h3>
+              <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>
                 Hồ sơ đã được lưu trữ an toàn. Dữ liệu nguồn được bảo vệ bằng TideCloak E2EE.
               </p>
             </div>
 
-            <div style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: '10px', padding: '16px', marginBottom: '24px' }}>
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '16px', marginBottom: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-                <span style={{ color: '#8b949e' }}>Mã Lô Hàng (batchId):</span>
-                <span style={{ color: '#f0f6fc', fontWeight: 'bold' }}>{batchId}</span>
+                <span style={{ color: '#64748b' }}>Mã Lô Hàng (batchId):</span>
+                <span style={{ color: '#0f172a', fontWeight: 'bold' }}>{batchId}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-                <span style={{ color: '#8b949e' }}>Định Danh Máy Chủ (UUID):</span>
-                <span style={{ color: '#79c0ff', fontFamily: 'monospace' }}>{submissionResponse.id}</span>
+                <span style={{ color: '#64748b' }}>Định Danh Máy Chủ (UUID):</span>
+                <span style={{ color: '#0284c7', fontFamily: 'monospace' }}>{submissionResponse.id}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                <span style={{ color: '#8b949e' }}>Thời Gian Tiếp Nhận:</span>
-                <span style={{ color: '#c9d1d9' }}>{new Date(submissionResponse.createdAt).toLocaleString('vi-VN')}</span>
+                <span style={{ color: '#64748b' }}>Thời Gian Tiếp Nhận:</span>
+                <span style={{ color: '#334155' }}>{new Date(submissionResponse.createdAt).toLocaleString('vi-VN')}</span>
               </div>
             </div>
 

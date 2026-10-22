@@ -216,7 +216,7 @@ export const SupplierBatchForm: React.FC<SupplierBatchFormProps> = ({
               <button
                 type="button"
                 className={styles.labelOptional}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#06b6d4', textDecoration: 'underline' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#0284c7', textDecoration: 'underline' }}
                 onClick={() => setShowHelper(!showHelper)}
               >
                 {showHelper ? 'Đóng công cụ' : 'Tính từ kg & km'}
