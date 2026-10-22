@@ -3,11 +3,24 @@ node_modules/
 dist/
 out/
 build/
+coverage/
+*.tsbuildinfo
 *.log
+npm-debug.log*
 .DS_Store
 *.local
-.env*.local
+.env*
+!.env.example
+
+# Local TideCloak bootstrap credentials & data
+infra/tidecloak/.env
+infra/tidecloak/data/
 
 # Storage phát sinh lúc chạy thử nghiệm (không commit)
 storage/*.json
+storage/*.tmp
 !storage/.gitkeep
+
+# Thư mục kiểm thử cục bộ độc lập
+demo-local/
+.superpowers/
