@@ -1,15 +1,31 @@
 {
-  "name": "rmit-hackathon-challenge-2",
+  "name": "scopezero",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "packageManager": "npm@10.8.2",
   "scripts": {
-    "test": "node --test --experimental-strip-types backend/reporting/calculate.test.ts",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "check": "tsc --noEmit",
+    "test": "bash scripts/test-all.sh",
     "test:all": "bash scripts/test-all.sh",
-    "check": "tsc --noEmit"
+    "test:buyer": "node --test src/components/Buyer/BuyerWorkspace.test.cjs"
+  },
+  "dependencies": {
+    "next": "16.4.2",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   },
   "devDependencies": {
-    "@types/node": "^26.6.5",
-    "typescript": "^5.9.3"
+    "@types/node": "22.19.0",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3"
   }
 }

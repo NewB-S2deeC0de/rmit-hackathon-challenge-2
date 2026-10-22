@@ -192,23 +192,37 @@ export type ContractErrorCode =
   | "CRYPTO_FAILED"
   | "NETWORK_ERROR";
 
-/** Lỗi chuẩn hóa dùng trong API client và crypto adapter */
+/** Lỗi chuẩn hóa dùng trong API client, UI components và crypto adapter */
 export class ContractError extends Error {
   status: number | null; // null cho lỗi validation/local/network
   code: ContractErrorCode;
   fields?: FieldError[];
 
-  constructor(opts: {
-    message: string;
-    code: ContractErrorCode;
-    status: number | null;
-    fields?: FieldError[];
-  }) {
-    super(opts.message);
+  constructor(
+    optsOrMessage:
+      | string
+      | {
+          message: string;
+          code: ContractErrorCode;
+          status: number | null;
+          fields?: FieldError[];
+        },
+    code?: ContractErrorCode,
+    status: number | null = null,
+    fields?: FieldError[]
+  ) {
+    if (typeof optsOrMessage === "object") {
+      super(optsOrMessage.message);
+      this.status = optsOrMessage.status;
+      this.code = optsOrMessage.code;
+      this.fields = optsOrMessage.fields;
+    } else {
+      super(optsOrMessage);
+      this.code = code!;
+      this.status = status;
+      this.fields = fields;
+    }
     this.name = "ContractError";
-    this.status = opts.status;
-    this.code = opts.code;
-    this.fields = opts.fields;
   }
 }
 

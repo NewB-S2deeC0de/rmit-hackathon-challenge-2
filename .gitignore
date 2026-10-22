@@ -3,16 +3,20 @@ node_modules/
 dist/
 out/
 build/
+coverage/
+*.tsbuildinfo
 *.log
+npm-debug.log*
 .DS_Store
 *.local
-.env*.local
+.env*
+!.env.example
 
 # Storage phát sinh lúc chạy thử nghiệm (không commit)
 storage/*.json
+storage/*.tmp
 !storage/.gitkeep
 
 # Thư mục kiểm thử cục bộ độc lập của Thành viên 3 (tránh xung đột nhánh)
 demo-local/
 .superpowers/
-
