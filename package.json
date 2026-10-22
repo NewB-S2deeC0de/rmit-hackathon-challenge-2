@@ -6,7 +6,7 @@
     "node": ">=20.9.0"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/setup-demo.mjs && next dev",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
